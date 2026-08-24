@@ -54,17 +54,9 @@
   "52": "ShareFile",
   "53": "QTimer",
   "54": "QString",
-  "55": "aiservice.h",
-  "56": "QVariantMap",
   "57": "AiRequest",
   "58": "install.sh",
-  "59": "AiToolResult",
   "60": "sharecredentials.cpp",
   "61": "atollctl",
-  "62": "Packaging",
-  "63": "ConditionalRead",
-  "64": "PermissionBroker::PermissionBroker",
-  "65": "devices",
-  "66": "progress",
-  "67": "onBusMessage"
+  "62": "Packaging"
 }

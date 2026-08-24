@@ -5,8 +5,9 @@
 Atoll is a small overlay that grows out of the edge of your screen and morphs to
 show whatever just happened: the volume you changed, the notification that
 arrived, the track that started playing. Click it and it unfolds into a
-dashboard with a full transport, synced lyrics, your notification backlog and a
-few toggles. Right-click it for the settings window.
+dashboard: a full transport, synced lyrics, your notification backlog, a few
+toggles, and - when you give it a calendar to read - what is on it today.
+Right-click it for the settings window.
 
 By default it is a **notch**: square corners against the screen edge, rounded
 ones below, flush with the bezel the way a MacBook's is. It can also be a
@@ -32,9 +33,10 @@ particular.
 | **OSD** | Volume, brightness, microphone, keyboard layout, power profile — anything Plasma announces. |
 | **Notification** | App icon or image, summary and body, with a progress bar for the notifications that carry one. |
 | **Media** | Album art, scrolling title, album, spectrum, and transport controls that fade in on hover. While synced lyrics exist, the second line becomes the words being sung. |
-| **Expanded** | Clock, battery, seekable transport, a scrolling lyrics panel, notification history and quick toggles. |
+| **Expanded** | Clock, battery, seekable transport, a scrolling lyrics panel, notification history and quick toggles, on one tab - and today's calendar on the other. |
+| **Calendar** | Point Atoll at an ICS feed and the dashboard's second tab fills with today's events. The pill mentions the next one when it is less than an hour away. |
 | **Sharing** | Drag files onto the island and it turns into a drop target, then a list of the devices nearby. Files coming the other way ask before they land. |
-| **Assistant** | Hold the island. The screen edges light up, a question box opens, and Claude or Gemini answers — and, one permission at a time, does the thing. |
+| **Assistant** | Hold the island. The screen edges light up, a question box opens, and Claude or Gemini answers — and, one permission at a time, does the thing. When it needs a decision from you, the answers arrive as buttons on the island. |
 
 ### How it gets its information
 
@@ -53,8 +55,12 @@ and it does not replace Plasma's OSD:
   reach the island the same way: title, artist, album, cover art and position.
   Remote cover art (Spotify hands out an https URL) is fetched once and cached.
 - **Lyrics** come from an `.lrc` file next to a local track when there is one,
-  and otherwise from [lrclib.net](https://lrclib.net). See
-  [Network](#network) - it is the only request Atoll ever makes.
+  and otherwise from [lrclib.net](https://lrclib.net). See [Network](#network)
+  for everything Atoll ever sends anywhere.
+- **Calendar events** come from ICS feeds you subscribe to - the `webcal://` or
+  `https://` address Google Calendar, iCloud, Nextcloud and Outlook all hand
+  out. Atoll reads them on a timer, expands repeating events itself, and never
+  writes anything back.
 - **Nearby devices** are found over the LocalSend protocol: a multicast group
   everyone announces themselves into, and a small HTTP server for the files
   themselves. See [Sharing files](#sharing-files).
@@ -120,6 +126,50 @@ systemctl --user enable --now atoll.service
 Two things are worth doing from an installed copy rather than a build
 directory: the lock screen (see [below](#on-the-lock-screen)) and the
 assistant, whose permission gate is the installed binary itself.
+
+## The dashboard
+
+Click the island and it unfolds. The clock and the date sit at the top, then
+whatever is playing with a seekable bar and its transport, then the
+notifications you have not dealt with, then a row of toggles.
+
+![the dashboard, with the media card, the notification backlog and the toggles](docs/screenshots/expanded.png)
+
+Which transport buttons are there is yours to choose under **Settings → Media**:
+shuffle, previous, play/pause, next and repeat, in that order, with the classic
+three shown when you have never said otherwise (`media.transportButtons`).
+
+### Calendar
+
+The dashboard has a second tab, and what fills it is any ICS feed you point
+Atoll at. Google Calendar, iCloud, Nextcloud and Outlook all publish one;
+`webcal://` and `https://` are both accepted, and the feed is fetched on a
+timer and parsed on this machine - repeating events, exceptions and all-day
+events included. The tab is there whether or not you have added a feed; turn
+`modules.calendar` off and it goes away.
+
+![the dashboard on its calendar tab, listing today's events](docs/screenshots/calendar.png)
+
+Add feeds under **Settings → Calendar**, or write them into the config:
+
+```json
+"calendar": {
+  "sources": [
+    { "name": "Work", "url": "https://example.com/work.ics" }
+  ]
+}
+```
+
+| Key | Default | Meaning |
+|---|---|---|
+| `modules.calendar` | `true` | The calendar tab and everything below it. |
+| `calendar.sources` | `[]` | The feeds, each `{"name": ..., "url": ...}`. With none the tab is empty. |
+| `calendar.lookaheadHours` | `24` | How far ahead an event counts as upcoming. |
+| `calendar.fetchIntervalMinutes` | `15` | How often the feeds are re-read. |
+| `calendar.showInIdle` | `true` | Whether the pill mentions the next event when it is under an hour away. |
+
+Nothing is written back to the calendar: the feeds are read-only to Atoll, and
+an ICS URL is all it ever asks for.
 
 ## The assistant
 
@@ -187,6 +237,12 @@ to it. It arrives as a line of text with the answers underneath it as buttons,
 and the one it would recommend is the one that looks like the answer. Tap one
 and it carries on with what you said; **Never mind** closes the question, which
 the assistant is told about and works around.
+
+![the assistant asking which editor to set up, with the answers as buttons on the island](docs/screenshots/assistant-question.png)
+
+A script of your own can put the same question up with
+`atollctl choose "Which one?" "This" "That"`, which prints back whichever
+answer was tapped.
 
 ### Looking at the screen
 
@@ -313,8 +369,15 @@ atollctl screenshot DP-1
 atollctl screens
 atollctl choose "Which editor should I set up?" "Kate" "Neovim"
 atollctl toggle
+atollctl dismiss
 atollctl settings
 ```
+
+`atollctl dismiss` closes whatever has the island's attention - the assistant,
+a notification sitting there waiting to be read - and leaves it at rest.
+`atoll --dismiss` is the same call by another name, as are `atoll --toggle`,
+`--expand`, `--collapse`, `--ask "..."` and `--quit`: each one hands the verb to
+the running island over the bus and exits.
 
 `atollctl screenshot` asks the desktop for one picture of the screen, writes it
 where the assistant can open it and prints the path. It is also how the
@@ -339,7 +402,9 @@ pointer is.
 
 Interaction: click to expand, **hold** for the assistant, right-click for the
 settings, middle-click to play/pause, scroll to change volume, hover to reveal
-transport controls. Every one of those is configurable.
+transport controls. Every one of those is configurable. Scrolling changes the
+volume only while the island is at rest - with the dashboard open or the
+assistant in front, the wheel is left alone.
 
 ## Sharing files
 
@@ -407,9 +472,14 @@ while you watch. Keys you are most likely to want:
 | `lyrics.enabled` | Whether to look lyrics up at all. |
 | `lyrics.offsetMs` | Shifts every lyric line, for players that report position late. |
 | `sharing.autoAccept` | Take offered files without asking first. |
+| `media.transportButtons` | Which of `shuffle`, `previous`, `playPause`, `next`, `repeat` the dashboard shows. |
+| `calendar.sources` | ICS feeds to read, each `{"name": ..., "url": ...}`. |
 | `ai.provider` | `"claude-cli"` signs in with the Claude Code client, `"anthropic"` and `"gemini"` use an API key. |
 | `ai.cliPath` | Where that client lives, for the installs Atoll does not find by itself. |
 | `ai.permissions.mode` | `"readonly"`, `"guarded"` or `"trusted"` - the same choice as in the settings window. |
+| `ai.screen` | Which monitor it looks at: `"ask"`, `"current"`, `"all"`, or an output name. |
+| `ai.screenshotMaxEdge` | Longest edge of the picture it is sent, in pixels. `1568` is what the services keep. |
+| `ai.glowColor` / `ai.glowColorFar` | The two ends of the edge light's gradient. |
 | `lockScreen.enabled` | Whether to ask to stay visible while the session is locked. |
 
 Configs written before islands could span outputs still work: an
@@ -417,21 +487,29 @@ Configs written before islands could span outputs still work: an
 
 ## Network
 
-Atoll makes exactly one kind of outbound request, and only when
-`lyrics.enabled` is on and a track has no local `.lrc` file: a lookup at
-`lrclib.net` carrying the artist, title, album and duration of what is playing.
-Results are cached under `~/.cache/atoll/lyrics`. Turn it off in the settings
-window under *Media and lyrics*, or with `"lyrics": { "enabled": false }`.
+Atoll has no server of its own and no account. Everything it can reach out to
+is listed here, and each one is off unless the thing that needs it is on.
 
-Remote cover art is fetched from whatever URL the player advertises - that is
-the player's server, not ours.
+- **Lyrics**, while `lyrics.enabled` is on and a track has no local `.lrc`
+  file: a lookup at `lrclib.net` carrying the artist, title, album and duration
+  of what is playing. Results are cached under `~/.cache/atoll/lyrics`. Turn it
+  off in the settings window under *Media and lyrics*, or with
+  `"lyrics": { "enabled": false }`.
+- **Cover art**, from whatever URL the player advertises - Spotify hands out an
+  https link rather than a file. That is the player's server, not ours, and
+  fetched art is cached.
+- **Calendar feeds**, but only the ones you added yourself, and only while
+  `modules.calendar` is on: a GET of each ICS URL every
+  `calendar.fetchIntervalMinutes`. Nothing is ever sent back to them.
+- **The assistant**, and only while you are asking it something: your question
+  goes to the service you connected it to, and nothing goes anywhere while it
+  sits idle. A picture of your screen goes with it only when you asked for one,
+  and your desktop asks you before it is taken.
 
-The assistant is the other way out, and only while you are asking it something:
-your question goes to the service you connected it to, and nothing goes
-anywhere while it sits idle. Connected through Claude Code, the traffic is the
-client's own - Atoll starts it, writes the question to it and reads the answer
-back - so it uses the account you signed that client in with. Turn the
-assistant off under *Settings -> Assistant* and neither path is taken at all.
+Connected through Claude Code, the assistant's traffic is the client's own -
+Atoll starts it, writes the question to it and reads the answer back - so it
+uses the account you signed that client in with. Turn the assistant off under
+*Settings → Assistant* and that path is not taken at all.
 
 Sharing is local traffic only: a multicast announcement on `224.0.0.167:53317`
 and HTTP(S) straight between the two devices. Turn the whole thing off with
@@ -463,9 +541,11 @@ do not.
 - Sharing is LocalSend, not AirDrop: an Apple device needs the LocalSend app
   to appear in the list. Sending to the LocalSend app also needs `openssl`
   present when Atoll first runs, because that app refuses cleartext peers.
-- The assistant needs an API key of your own, and every question costs whatever
-  the provider charges. Atoll adds nothing to that and takes no cut; there is
-  no free tier to fall back on.
+- The assistant answers through somebody else's service, and Atoll has no
+  arrangement with any of them. Through Claude Code it uses the account you
+  signed that client in with; through an API key it costs whatever the provider
+  charges per question. Atoll adds nothing to that and takes no cut, and there
+  is no service of ours to fall back on.
 - What the assistant can do is bounded by the tools it has and by the
   permission tiers above, not by how convincing its explanation is. It is still
   a language model: read the command in the prompt before you allow it, the

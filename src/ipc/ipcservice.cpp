@@ -158,6 +158,11 @@ void IpcService::answerUserChoice(const QString &token, const QString &result)
     sendReply(token, result);
 }
 
+void IpcService::dismiss()
+{
+    Q_EMIT dismissRequested();
+}
+
 void IpcService::reloadConfig()
 {
     Q_EMIT reloadRequested();

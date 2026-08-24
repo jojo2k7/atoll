@@ -31,6 +31,15 @@ Item {
         return player.artist
     }
 
+    // Sum of widths of the configured transport buttons.
+    readonly property int transportWidth: {
+        let w = 0
+        for (const b of Cfg.transportButtons) {
+            w += (b === "playPause") ? 28 : 26
+        }
+        return Math.max(26, w)
+    }
+
     implicitHeight: 52
     implicitWidth: Math.min(Cfg.maxWidth,
                             Math.max(340, layout.implicitWidth + Math.max(32, Theme.edgeInset * 2)))
@@ -75,10 +84,11 @@ Item {
                 font.family: Theme.fontFamily
                 font.pixelSize: Theme.size(10)
 
-                // A lyric line replacing the artist should read as a change of
-                // line, not as a caption being overwritten.
+                transform: Translate { id: slideT; y: 0 }
+
                 onTextChanged: if (view.lyric.length > 0) {
                     lineIn.restart()
+                    lineSlide.restart()
                 }
 
                 NumberAnimation {
@@ -90,16 +100,24 @@ Item {
                     duration: Theme.normal
                     easing.type: Easing.OutCubic
                 }
+
+                NumberAnimation {
+                    id: lineSlide
+                    target: slideT
+                    property: "y"
+                    from: 5
+                    to: 0
+                    duration: Theme.normal
+                    easing.type: Easing.OutCubic
+                }
             }
         }
 
-        // The spectrum yields its space to the controls on hover. The slot is
-        // only ever as wide as whichever of the two is showing, so neither the
-        // bars nor the buttons spill past the island's rounded edge.
+        // The spectrum yields its space to the controls on hover.
         Item {
             anchors.verticalCenter: parent.verticalCenter
-            width: view.interactive ? 84 : 26
-            height: 24
+            width: view.interactive ? view.transportWidth : 26
+            height: 28
 
             Behavior on width {
                 NumberAnimation {
@@ -113,8 +131,6 @@ Item {
                 anchors.centerIn: parent
                 height: parent.height
                 barWidth: 2
-                // A handful of bars reads as "sound is happening"; the full
-                // band count belongs to a window, not to a notch.
                 limit: 5
                 opacity: view.interactive ? 0 : 1
                 visible: opacity > 0
@@ -138,28 +154,66 @@ Item {
                     }
                 }
 
-                RoundButton {
-                    width: 26
-                    height: 26
-                    icon: ["media-skip-backward"]
-                    enabled: view.player ? view.player.canGoPrevious : false
-                    onClicked: view.player && view.player.previous()
-                }
+                Repeater {
+                    model: Cfg.transportButtons
 
-                RoundButton {
-                    width: 28
-                    height: 28
-                    icon: [view.player && view.player.playing ? "media-playback-pause" : "media-playback-start"]
-                    enabled: view.player ? (view.player.canPlay || view.player.canPause) : false
-                    onClicked: view.player && view.player.playPause()
-                }
+                    delegate: Item {
+                        id: compactBtn
+                        required property string modelData
 
-                RoundButton {
-                    width: 26
-                    height: 26
-                    icon: ["media-skip-forward"]
-                    enabled: view.player ? view.player.canGoNext : false
-                    onClicked: view.player && view.player.next()
+                        readonly property bool isPlayPause: modelData === "playPause"
+                        width: isPlayPause ? 28 : 26
+                        height: 28
+
+                        RoundButton {
+                            anchors.centerIn: parent
+                            width: compactBtn.isPlayPause ? 28 : 26
+                            height: width
+                            opacity: {
+                                const p = view.player
+                                if (!p) return 0.65
+                                const btn = compactBtn.modelData
+                                if (btn === "shuffle") return p.shuffle ? 1.0 : 0.55
+                                if (btn === "repeat") return (p.loopStatus && p.loopStatus !== "None") ? 1.0 : 0.55
+                                return 1.0
+                            }
+                            icon: {
+                                const btn = compactBtn.modelData
+                                if (btn === "shuffle") return ["media-playlist-shuffle"]
+                                if (btn === "previous") return ["media-skip-backward"]
+                                if (btn === "playPause") {
+                                    return [view.player && view.player.playing
+                                            ? "media-playback-pause" : "media-playback-start"]
+                                }
+                                if (btn === "next") return ["media-skip-forward"]
+                                if (btn === "repeat") return ["media-playlist-repeat"]
+                                return []
+                            }
+                            enabled: {
+                                const p = view.player
+                                if (!p) return false
+                                const btn = compactBtn.modelData
+                                if (btn === "previous") return p.canGoPrevious
+                                if (btn === "playPause") return p.canPlay || p.canPause
+                                if (btn === "next") return p.canGoNext
+                                return true
+                            }
+                            onClicked: {
+                                const p = view.player
+                                if (!p) return
+                                const btn = compactBtn.modelData
+                                if (btn === "shuffle") { p.setShuffle(!p.shuffle) }
+                                else if (btn === "previous") { p.previous() }
+                                else if (btn === "playPause") { p.playPause() }
+                                else if (btn === "next") { p.next() }
+                                else if (btn === "repeat") {
+                                    const s = p.loopStatus
+                                    p.setLoopStatus(s === "None" || s === ""
+                                                    ? "Playlist" : s === "Playlist" ? "Track" : "None")
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }

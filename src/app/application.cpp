@@ -5,6 +5,7 @@
 #include "application.h"
 
 #include "ai/aiservice.h"
+#include "calendar/calendarservice.h"
 #include "config/config.h"
 #include "dbus/dbusmonitor.h"
 #include "dbus/mprismanager.h"
@@ -79,6 +80,7 @@ Application::Application(QObject *parent)
     m_ipc = new IpcService(this);
     m_share = new ShareService(m_config, this);
     m_ai = new AiService(m_config, this);
+    m_calendar = new CalendarService(m_config, this);
 
     connect(m_notificationMonitor, &NotificationMonitor::posted, m_notifications, &NotificationModel::onPosted);
     connect(m_notificationMonitor, &NotificationMonitor::idAssigned, m_notifications, &NotificationModel::onIdAssigned);

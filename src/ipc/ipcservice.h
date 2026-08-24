@@ -52,6 +52,7 @@ public Q_SLOTS:
     Q_SCRIPTABLE void assistant();
     /** Put a question to the assistant, as if it had been typed on the island. */
     Q_SCRIPTABLE void ask(const QString &prompt);
+    Q_SCRIPTABLE void dismiss();
     Q_SCRIPTABLE void reloadConfig();
     Q_SCRIPTABLE void settings();
     Q_SCRIPTABLE void raise();
@@ -110,6 +111,7 @@ Q_SIGNALS:
     void expandRequested();
     void collapseRequested();
     void toggleRequested();
+    void dismissRequested();
     void textRequested(const QString &icon, const QString &text);
     void progressRequested(const QString &icon, int percent, const QString &text);
     void shareRequested(const QStringList &paths);

@@ -11,6 +11,7 @@
 // needs the complete types, not forward declarations.
 #include "ai/aiservice.h"
 #include "app/shellwindow.h"
+#include "calendar/calendarservice.h"
 #include "dbus/dbusmonitor.h"
 #include "config/config.h"
 #include "dbus/mprismanager.h"
@@ -53,6 +54,7 @@ class Application : public QObject
     Q_PROPERTY(ShareService *share READ share CONSTANT)
     Q_PROPERTY(AiService *ai READ ai CONSTANT)
     Q_PROPERTY(IpcService *ipc READ ipc CONSTANT)
+    Q_PROPERTY(CalendarService *calendar READ calendar CONSTANT)
 
     Q_PROPERTY(QString version READ version CONSTANT)
     /** ATOLL_DEBUG_SURFACE=1 paints the whole layer surface, to see its bounds. */
@@ -134,6 +136,10 @@ public:
     {
         return m_ai;
     }
+    CalendarService *calendar() const
+    {
+        return m_calendar;
+    }
 
     QString version() const;
     QString settingsPage() const;
@@ -189,6 +195,7 @@ private:
     IpcService *m_ipc = nullptr;
     ShareService *m_share = nullptr;
     AiService *m_ai = nullptr;
+    CalendarService *m_calendar = nullptr;
 
     bool m_busTapActive = false;
     QString m_busError;

@@ -295,6 +295,14 @@ Item {
         function onToggleRequested() {
             island.expanded = !island.expanded
         }
+        function onDismissRequested() {
+            if (island.aiActive) {
+                App.ai.dismiss()
+            }
+            island.expanded = false
+            island.notificationSticky = false
+            notificationTimer.stop()
+        }
     }
 
     Connections {
@@ -586,6 +594,7 @@ Item {
 
     WheelHandler {
         enabled: (Cfg.behavior.scrollAdjustsVolume ?? true) && island.mode !== "ai"
+                 && island.mode !== "expanded"
         acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
         onWheel: event => {
             const step = Cfg.behavior.volumeStep ?? 5

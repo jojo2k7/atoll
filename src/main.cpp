@@ -143,6 +143,7 @@ int main(int argc, char *argv[])
     const QCommandLineOption toggleOption(u"toggle"_s, u"Expand or collapse the running island and exit."_s);
     const QCommandLineOption expandOption(u"expand"_s, u"Expand the running island and exit."_s);
     const QCommandLineOption collapseOption(u"collapse"_s, u"Collapse the running island and exit."_s);
+    const QCommandLineOption dismissOption(u"dismiss"_s, u"Dismiss whatever the island is showing."_s);
     const QCommandLineOption quitOption(u"quit"_s, u"Ask the running island to exit."_s);
     const QCommandLineOption settingsOption(u"settings"_s, u"Open the settings window."_s);
     const QCommandLineOption askOption(u"ask"_s,
@@ -155,6 +156,7 @@ int main(int argc, char *argv[])
     parser.addOption(toggleOption);
     parser.addOption(expandOption);
     parser.addOption(collapseOption);
+    parser.addOption(dismissOption);
     parser.addOption(quitOption);
     parser.addOption(settingsOption);
     parser.addOption(askOption);
@@ -173,6 +175,7 @@ int main(int argc, char *argv[])
         for (const auto &[option, method] : {std::pair{toggleOption, u"toggle"_s},
                                              std::pair{expandOption, u"expand"_s},
                                              std::pair{collapseOption, u"collapse"_s},
+                                             std::pair{dismissOption, u"dismiss"_s},
                                              std::pair{quitOption, u"quit"_s}}) {
             if (parser.isSet(option)) {
                 if (sendTo(u"org.atoll.Atoll"_s, u"/Atoll"_s, method)) {

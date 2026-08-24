@@ -65,7 +65,9 @@ Item {
         Text {
             visible: !view.withBar
             anchors.verticalCenter: parent.verticalCenter
-            text: view.osd.label
+            text: view.osd.label.length > 0
+                  ? view.osd.label
+                  : view.osd.icon.split("-").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ")
             color: Theme.foreground
             font.family: Theme.fontFamily
             font.pixelSize: Theme.size(13)

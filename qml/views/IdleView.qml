@@ -30,6 +30,14 @@ Item {
      */
     readonly property bool assistantBusy: Cfg.aiEnabled && App.ai.background && App.ai.busy
 
+    readonly property bool showCalendarHint: autoMode
+        && (Cfg.modules.calendar ?? true)
+        && (Cfg.get("calendar.showInIdle", true))
+        && App.calendar !== null
+        && App.calendar !== undefined
+        && App.calendar.hasEvents
+        && (App.calendar.nextEvent.minutesUntil ?? 999) <= 60
+
     implicitHeight: Cfg.collapsedHeight
     implicitWidth: Cfg.idleMode === "hidden"
                    ? 0
@@ -69,6 +77,24 @@ Item {
             font.family: Theme.fontFamily
             font.pixelSize: Theme.size(13)
             font.weight: Font.DemiBold
+        }
+
+        Text {
+            visible: view.showCalendarHint
+            anchors.verticalCenter: parent.verticalCenter
+            width: 80
+            text: {
+                if (!App.calendar || !App.calendar.hasEvents) return ""
+                const ev = App.calendar.nextEvent
+                if (!ev || !ev.title) return ""
+                const mins = ev.minutesUntil ?? 0
+                if (mins < 1) return ev.title
+                return ev.title + " · " + mins + " min"
+            }
+            color: Theme.muted
+            font.family: Theme.fontFamily
+            font.pixelSize: Theme.size(9)
+            elide: Text.ElideRight
         }
 
         Rectangle {

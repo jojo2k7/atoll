@@ -85,6 +85,13 @@ SettingsPage {
             label: qsTr("Clock")
             key: "modules.clock"
             defaultValue: true
+        }
+
+        BoolSetting {
+            label: qsTr("Calendar")
+            description: qsTr("Upcoming events in the dashboard and resting island.")
+            key: "modules.calendar"
+            defaultValue: true
             last: true
         }
     }

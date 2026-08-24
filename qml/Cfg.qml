@@ -72,6 +72,13 @@ QtObject {
     readonly property bool lyricsInExpanded: (lyrics.enabled ?? true) && (lyrics.showInExpanded ?? true)
                                              && (modules.lyrics ?? true)
 
+    /** Ordered list of transport button IDs to show. Falls back to the classic three. */
+    readonly property var transportButtons: {
+        const buttons = media.transportButtons
+        if (Array.isArray(buttons) && buttons.length > 0) return buttons
+        return ["previous", "playPause", "next"]
+    }
+
     /**
      * Read any dotted key reactively. Because it walks `data`, every binding
      * that calls it re-evaluates when the config changes - which is what lets

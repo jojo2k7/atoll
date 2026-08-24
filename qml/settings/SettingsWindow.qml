@@ -24,13 +24,14 @@ Window {
         { title: qsTr("Notifications"), icon: ["preferences-desktop-notification", "notifications"] },
         { title: qsTr("Behaviour"), icon: ["input-mouse", "preferences-desktop-mouse"] },
         { title: qsTr("Sharing"), icon: ["emblem-shared", "document-send"] },
+        { title: qsTr("Calendar"), icon: ["view-calendar", "office-calendar", "x-office-calendar"] },
         { title: qsTr("Assistant"), icon: ["preferences-desktop-ai", "tools-wizard", "help-hint"] },
         { title: qsTr("About"), icon: ["help-about", "dialog-information"] }
     ]
 
     /** Page names the island can ask to land on. */
     readonly property var pageKeys: ["placement", "appearance", "content", "media",
-                                     "notifications", "behaviour", "sharing", "ai", "about"]
+                                     "notifications", "behaviour", "sharing", "calendar", "ai", "about"]
 
     Component.onCompleted: {
         // The island opens this window on a specific page when it is offering
@@ -313,14 +314,19 @@ Window {
             visible: root.current === 6
         }
 
-        AiPage {
+        CalendarPage {
             anchors.fill: parent
             visible: root.current === 7
         }
 
-        AboutPage {
+        AiPage {
             anchors.fill: parent
             visible: root.current === 8
+        }
+
+        AboutPage {
+            anchors.fill: parent
+            visible: root.current === 9
         }
     }
 }

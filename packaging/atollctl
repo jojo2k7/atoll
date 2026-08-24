@@ -13,6 +13,7 @@ Usage: atollctl <command> [arguments]
   toggle                       expand or collapse the island
   expand                       expand the island
   collapse                     collapse the island
+  dismiss                      dismiss whatever the island is showing
   text <icon> <text>           show a one-line message
   progress <icon> <0-100> <t>  show a progress readout
   share <file> [file...]       offer files to nearby devices
@@ -53,7 +54,7 @@ command=$1
 shift
 
 case "$command" in
-    toggle|expand|collapse|quit|assistant) call "$command" ;;
+    toggle|expand|collapse|dismiss|quit|assistant) call "$command" ;;
     reload) call reloadConfig ;;
     settings)
         # Works whether or not an island is running: the window is its own

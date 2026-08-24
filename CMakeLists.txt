@@ -85,6 +85,8 @@ qt_add_executable(atoll
     src/system/lockmonitor.cpp     src/system/lockmonitor.h
     src/system/visualizer.cpp      src/system/visualizer.h
 
+    src/calendar/calendarservice.cpp src/calendar/calendarservice.h
+
     src/ipc/ipcservice.cpp         src/ipc/ipcservice.h
 
     src/media/lyricsservice.cpp    src/media/lyricsservice.h
@@ -130,6 +132,7 @@ target_include_directories(atoll PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/src
     ${CMAKE_CURRENT_SOURCE_DIR}/src/ai
     ${CMAKE_CURRENT_SOURCE_DIR}/src/app
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/calendar
     ${CMAKE_CURRENT_SOURCE_DIR}/src/config
     ${CMAKE_CURRENT_SOURCE_DIR}/src/dbus
     ${CMAKE_CURRENT_SOURCE_DIR}/src/ipc
@@ -212,6 +215,7 @@ qt_add_qml_module(atoll
         qml/settings/BehaviorPage.qml
         qml/settings/SharingPage.qml
         qml/settings/AiPage.qml
+        qml/settings/CalendarPage.qml
         qml/settings/SecretField.qml
         qml/settings/AboutPage.qml
     RESOURCES

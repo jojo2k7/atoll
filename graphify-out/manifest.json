@@ -1,7 +1,7 @@
 {
   "packaging/atollctl": {
-    "mtime": 1787589147.0698016,
-    "ast_hash": "b4770e186d4db22451d894032dd7620b",
+    "mtime": 1787591664.659529,
+    "ast_hash": "137d0f11b9ea3592d1e471f089863632",
     "semantic_hash": ""
   },
   "scripts/install.sh": {
@@ -20,22 +20,22 @@
     "semantic_hash": ""
   },
   "src/ai/aiservice.cpp": {
-    "mtime": 1787589633.9624875,
+    "mtime": 1787590951.3099682,
     "ast_hash": "43e823277980d7acc0c1a246a17615a9",
     "semantic_hash": ""
   },
   "src/ai/aiservice.h": {
-    "mtime": 1787589351.0488896,
+    "mtime": 1787590951.3099682,
     "ast_hash": "f66d2aaf90289f2062097d18c35a7d01",
     "semantic_hash": ""
   },
   "src/ai/aitools.cpp": {
-    "mtime": 1787590341.4298906,
+    "mtime": 1787590951.3099682,
     "ast_hash": "ffa493aebf02cd32c19c10fde4574575",
     "semantic_hash": ""
   },
   "src/ai/aitools.h": {
-    "mtime": 1787589052.9047084,
+    "mtime": 1787590951.3099682,
     "ast_hash": "417b857b1514f8e1abb36a19a7f74ebd",
     "semantic_hash": ""
   },
@@ -95,7 +95,7 @@
     "semantic_hash": ""
   },
   "src/ai/permissionbroker.cpp": {
-    "mtime": 1787589073.57555,
+    "mtime": 1787590951.3099682,
     "ast_hash": "43fc5d596687778895a5cbb9d18e3ec1",
     "semantic_hash": ""
   },
@@ -115,23 +115,23 @@
     "semantic_hash": ""
   },
   "src/ai/screencapture.cpp": {
-    "mtime": 1787588797.916246,
+    "mtime": 1787590951.3099682,
     "ast_hash": "5e9b3e3ae27bd022f5509d85758eca99",
     "semantic_hash": ""
   },
   "src/ai/screencapture.h": {
-    "mtime": 1787588797.9164135,
+    "mtime": 1787590951.3099682,
     "ast_hash": "c394a725efacaaa5ee59605b46744a07",
     "semantic_hash": ""
   },
   "src/app/application.cpp": {
-    "mtime": 1787589131.7121425,
-    "ast_hash": "81cb68cc63080268aaca03d3d2cc9d15",
+    "mtime": 1787591664.6601365,
+    "ast_hash": "1ad822e67f1bf1bc51c16a3d3f9e1b75",
     "semantic_hash": ""
   },
   "src/app/application.h": {
-    "mtime": 1787542226.9436138,
-    "ast_hash": "e1842804c1d83cc185705dd0e07b43a0",
+    "mtime": 1787591664.6601365,
+    "ast_hash": "6880484b4b96e4f8432b7784b0256c3a",
     "semantic_hash": ""
   },
   "src/app/imagestore.cpp": {
@@ -235,18 +235,18 @@
     "semantic_hash": ""
   },
   "src/ipc/ipcservice.cpp": {
-    "mtime": 1787589185.1159732,
-    "ast_hash": "3094160a0820ee8c93aa82c38a512cd8",
+    "mtime": 1787591664.6625545,
+    "ast_hash": "da3199dbdd7cea437b29190b6b39f064",
     "semantic_hash": ""
   },
   "src/ipc/ipcservice.h": {
-    "mtime": 1787589108.6887455,
-    "ast_hash": "a3ca3e7a560eb7cd7132e8b4d6367831",
+    "mtime": 1787591664.6625545,
+    "ast_hash": "bf09a2bbe9095998b9a9cca7cfe46269",
     "semantic_hash": ""
   },
   "src/main.cpp": {
-    "mtime": 1787542054.2752182,
-    "ast_hash": "d7b7b4d37f0f2186b87fea354e7a3c44",
+    "mtime": 1787591664.6625545,
+    "ast_hash": "3fc41b982ad752a3a253393b89d85639",
     "semantic_hash": ""
   },
   "src/media/lyricsservice.cpp": {
@@ -365,13 +365,13 @@
     "semantic_hash": ""
   },
   "CMakeLists.txt": {
-    "mtime": 1787542054.2763574,
-    "ast_hash": "051f9fd90b6620dd77875b8f1d86a07e",
+    "mtime": 1787591664.659529,
+    "ast_hash": "75650eff7729f9ffc923b105f0279dc7",
     "semantic_hash": ""
   },
   "README.md": {
-    "mtime": 1787590287.9516323,
-    "ast_hash": "acb68501acf8aefd0e313331c1ec98a7",
+    "mtime": 1787593961.8603883,
+    "ast_hash": "8e00d98a3124989c719a6d07c9627161",
     "semantic_hash": ""
   },
   "packaging/README.md": {
@@ -385,23 +385,43 @@
     "semantic_hash": ""
   },
   "docs/screenshots/assistant.png": {
-    "mtime": 1787537826.5910168,
-    "ast_hash": "d62844ca55a34f7e5db899c5140a3d70",
+    "mtime": 1787593687.8444812,
+    "ast_hash": "2b521f74619883be1a6a6da0dd35c915",
     "semantic_hash": ""
   },
   "docs/screenshots/expanded.png": {
-    "mtime": 1787505612.7697346,
-    "ast_hash": "ea0edcc9d4a9f12e0952a3557a5ea18d",
+    "mtime": 1787593687.8411872,
+    "ast_hash": "a58efc8e040f067fadcafeb27497d019",
     "semantic_hash": ""
   },
   "docs/screenshots/idle.png": {
-    "mtime": 1787505612.763708,
-    "ast_hash": "b11a8e838e54820b2579f58bc7664925",
+    "mtime": 1787593687.8399546,
+    "ast_hash": "e73f32fed6f5ef83d558160b8053cec5",
     "semantic_hash": ""
   },
   "docs/screenshots/settings.png": {
-    "mtime": 1787510147.1026568,
-    "ast_hash": "6f963bbb592de1800f9ab793fe976114",
+    "mtime": 1787593687.8455708,
+    "ast_hash": "60df70df28742a51a734e3532dec1e2c",
+    "semantic_hash": ""
+  },
+  "src/calendar/calendarservice.cpp": {
+    "mtime": 1787591664.6623774,
+    "ast_hash": "4331b142b40edc71d42e86683913c462",
+    "semantic_hash": ""
+  },
+  "src/calendar/calendarservice.h": {
+    "mtime": 1787591664.6625545,
+    "ast_hash": "d88d8cbf1e6a4877d5fdd7ff03777834",
+    "semantic_hash": ""
+  },
+  "docs/screenshots/assistant-question.png": {
+    "mtime": 1787593687.8434694,
+    "ast_hash": "98b83b8b8978de7c3a6ce6b0af5495eb",
+    "semantic_hash": ""
+  },
+  "docs/screenshots/calendar.png": {
+    "mtime": 1787593687.8424146,
+    "ast_hash": "79c9e45eaeef3eb4b31310699de8b336",
     "semantic_hash": ""
   }
 }

@@ -21,6 +21,7 @@ class ClaudeCliProvider;
 class Config;
 class CredentialStore;
 class GeminiProvider;
+class OpenRouterProvider;
 class PermissionBroker;
 class QNetworkAccessManager;
 
@@ -373,6 +374,7 @@ private:
     QNetworkAccessManager *m_network = nullptr;
     AnthropicProvider *m_anthropic = nullptr;
     GeminiProvider *m_gemini = nullptr;
+    OpenRouterProvider *m_openrouter = nullptr;
     ClaudeCliProvider *m_cli = nullptr;
     CredentialStore *m_credentials = nullptr;
     PermissionBroker *m_broker = nullptr;

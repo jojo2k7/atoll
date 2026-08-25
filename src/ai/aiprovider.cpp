@@ -50,6 +50,10 @@ QString AiProvider::describeHttpError(int status, const QByteArray &body)
     QString message;
     if (error.isObject()) {
         message = error.toObject().value(u"message"_s).toString();
+    } else if (error.isString()) {
+        message = error.toString();
+    } else if (object.contains(u"message"_s)) {
+        message = object.value(u"message"_s).toString();
     } else if (document.isArray() && !document.array().isEmpty()) {
         message = document.array().first().toObject().value(u"error"_s).toObject().value(u"message"_s).toString();
     }
@@ -58,12 +62,19 @@ QString AiProvider::describeHttpError(int status, const QByteArray &body)
         message = QString::fromUtf8(body).trimmed().left(300);
     }
 
+    // The service's own sentence rides along wherever there is one: "the key
+    // was rejected" covers a typo, an expired subscription and an unpaid bill
+    // alike, and only the provider knows which.
     switch (status) {
     case 401:
     case 403:
-        return QObject::tr("The API key was rejected. Check it in Atoll's settings.");
+        return message.isEmpty()
+            ? QObject::tr("The API key was rejected. Check it in Atoll's settings.")
+            : QObject::tr("The API key was rejected: %1").arg(message);
     case 429:
-        return QObject::tr("The service is rate limiting this key. Try again in a moment.");
+        return message.isEmpty()
+            ? QObject::tr("The service is rate limiting this key. Try again in a moment.")
+            : QObject::tr("Rate limited: %1").arg(message);
     case 400:
         return message.isEmpty() ? QObject::tr("The request was refused.") : message;
     default:

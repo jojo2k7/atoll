@@ -18,6 +18,7 @@
 #include "share/shareservice.h"
 #include "shellwindow.h"
 #include "system/battery.h"
+#include "system/bluetooth.h"
 #include "system/clock.h"
 #include "system/lockmonitor.h"
 #include "system/visualizer.h"
@@ -73,6 +74,7 @@ Application::Application(QObject *parent)
     m_notifications = new NotificationModel(m_config, this);
     m_media = new MprisManager(m_config, this);
     m_battery = new Battery(this);
+    m_bluetooth = new BluetoothService(this);
     m_clock = new Clock(m_config, this);
     m_visualizer = new Visualizer(m_config, this);
     m_lyrics = new LyricsService(m_config, m_media, this);

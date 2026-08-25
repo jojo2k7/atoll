@@ -21,6 +21,7 @@
 #include "media/lyricsservice.h"
 #include "share/shareservice.h"
 #include "system/battery.h"
+#include "system/bluetooth.h"
 #include "system/clock.h"
 #include "system/lockmonitor.h"
 #include "system/visualizer.h"
@@ -47,6 +48,7 @@ class Application : public QObject
     Q_PROPERTY(NotificationModel *notifications READ notifications CONSTANT)
     Q_PROPERTY(MprisManager *media READ media CONSTANT)
     Q_PROPERTY(Battery *battery READ battery CONSTANT)
+    Q_PROPERTY(BluetoothService *bluetooth READ bluetooth CONSTANT)
     Q_PROPERTY(Clock *clock READ clock CONSTANT)
     Q_PROPERTY(Visualizer *visualizer READ visualizer CONSTANT)
     Q_PROPERTY(LyricsService *lyrics READ lyrics CONSTANT)
@@ -107,6 +109,10 @@ public:
     Battery *battery() const
     {
         return m_battery;
+    }
+    BluetoothService *bluetooth() const
+    {
+        return m_bluetooth;
     }
     Clock *clock() const
     {
@@ -188,6 +194,7 @@ private:
     NotificationModel *m_notifications = nullptr;
     MprisManager *m_media = nullptr;
     Battery *m_battery = nullptr;
+    BluetoothService *m_bluetooth = nullptr;
     Clock *m_clock = nullptr;
     Visualizer *m_visualizer = nullptr;
     LyricsService *m_lyrics = nullptr;

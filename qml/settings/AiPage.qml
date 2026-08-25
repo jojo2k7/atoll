@@ -42,14 +42,15 @@ SettingsPage {
         ChoiceSetting {
             label: qsTr("Provider")
             description: qsTr("Claude Code signs in with an account you may already have, and needs no key. "
-                              + "The other two want a key from the company that runs them. Nothing is sent "
+                              + "The others want a key from the service that runs them. Nothing is sent "
                               + "anywhere until you ask a question.")
             key: "ai.provider"
             defaultValue: "claude-cli"
             options: [
                 { value: "claude-cli", label: "Claude Code" },
                 { value: "anthropic", label: qsTr("Claude API") },
-                { value: "gemini", label: "Gemini" }
+                { value: "gemini", label: "Gemini" },
+                { value: "openrouter", label: "OpenRouter" }
             ]
         }
 
@@ -118,9 +119,13 @@ SettingsPage {
 
         SettingRow {
             visible: !page.usingClient
-            label: page.provider === "gemini" ? qsTr("Gemini API key") : qsTr("Claude API key")
+            label: page.provider === "gemini" ? qsTr("Gemini API key")
+                   : page.provider === "openrouter" ? qsTr("OpenRouter API key")
+                   : qsTr("Claude API key")
             description: page.provider === "gemini"
                          ? qsTr("From aistudio.google.com. Atoll also reads GEMINI_API_KEY from your environment.")
+                         : page.provider === "openrouter"
+                         ? qsTr("From openrouter.ai/keys. One key, every model on OpenRouter. Atoll also reads OPENROUTER_API_KEY from your environment.")
                          : qsTr("From console.anthropic.com. Atoll also reads ANTHROPIC_API_KEY from your environment.")
             wide: true
 
@@ -165,9 +170,11 @@ SettingsPage {
             description: qsTr("Empty means the best general model the provider offers.")
             key: "ai.model"
             defaultValue: ""
-            placeholder: page.usingClient
-                         ? "sonnet"
-                         : (page.provider === "gemini" ? "gemini-2.5-pro" : "claude-opus-5")
+                placeholder: page.usingClient
+                             ? "sonnet"
+                             : (page.provider === "gemini" ? "gemini-2.5-pro"
+                                : page.provider === "openrouter" ? "anthropic/claude-sonnet-4"
+                                : "claude-opus-5")
         }
 
         BoolSetting {

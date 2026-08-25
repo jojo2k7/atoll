@@ -88,6 +88,7 @@ QVariantMap Config::defaults()
     "notifications": true,
     "media": true,
     "battery": true,
+    "bluetooth": true,
     "visualizer": true,
     "clock": true,
     "lyrics": true,
@@ -140,6 +141,9 @@ QVariantMap Config::defaults()
     "port": 53317,
     "multicast": "224.0.0.167"
   },
+  "bluetooth": {
+    "showInExpanded": false
+  },
   "ai": {
     "enabled": true,
     "provider": "claude-cli",
@@ -177,6 +181,14 @@ QVariantMap Config::defaults()
   "clock": {
     "timeFormat": "HH:mm",
     "dateFormat": "ddd d MMM"
+  },
+  "idle": {
+    "showClock": true,
+    "showDate": false,
+    "showMediaBadge": true,
+    "showNotificationDot": true,
+    "showBatteryDot": true,
+    "showCalendarHint": true
   }
 })JSON";
 

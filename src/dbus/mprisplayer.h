@@ -49,6 +49,10 @@ class MprisPlayer : public QObject
     Q_PROPERTY(bool canPlay READ canPlay NOTIFY capabilitiesChanged)
     Q_PROPERTY(bool canPause READ canPause NOTIFY capabilitiesChanged)
     Q_PROPERTY(bool canSeek READ canSeek NOTIFY capabilitiesChanged)
+    /** True once the player has been seen exposing a Shuffle property at all. */
+    Q_PROPERTY(bool canShuffle READ canShuffle NOTIFY optionsChanged)
+    /** True once the player has been seen exposing a LoopStatus property at all. */
+    Q_PROPERTY(bool canLoop READ canLoop NOTIFY optionsChanged)
 
 public:
     explicit MprisPlayer(const QString &service, QObject *parent = nullptr);
@@ -109,17 +113,17 @@ public:
     {
         return m_volume;
     }
-    void setVolume(double volume);
+    Q_INVOKABLE void setVolume(double volume);
     bool shuffle() const
     {
         return m_shuffle;
     }
-    void setShuffle(bool shuffle);
+    Q_INVOKABLE void setShuffle(bool shuffle);
     QString loopStatus() const
     {
         return m_loopStatus;
     }
-    void setLoopStatus(const QString &status);
+    Q_INVOKABLE void setLoopStatus(const QString &status);
 
     bool canGoNext() const
     {
@@ -140,6 +144,14 @@ public:
     bool canSeek() const
     {
         return m_canSeek;
+    }
+    bool canShuffle() const
+    {
+        return m_canShuffle;
+    }
+    bool canLoop() const
+    {
+        return m_canLoop;
     }
 
     /** Wall-clock time this player last started playing, for pick-the-active. */
@@ -198,6 +210,8 @@ private:
     QString m_playbackStatus = QStringLiteral("Stopped");
     QString m_loopStatus;
     bool m_shuffle = false;
+    bool m_canShuffle = false;
+    bool m_canLoop = false;
     bool m_canGoNext = false;
     bool m_canGoPrevious = false;
     bool m_canPlay = false;

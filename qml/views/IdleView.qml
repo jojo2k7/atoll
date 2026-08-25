@@ -9,20 +9,30 @@ import Atoll
  * dot for anything waiting; "notch" keeps the bare pill; "clock" is the time on
  * its own. Only "hidden" collapses it to nothing, and only when the island is
  * explicitly allowed to disappear.
+ *
+ * Which of those things appear at all is the user's call: every element gates
+ * on its own switch under "idle.*" in the config.
  */
 Item {
     id: view
 
     readonly property bool autoMode: Cfg.idleMode === "auto"
-    readonly property bool showClock: (autoMode || Cfg.idleMode === "clock") && (Cfg.modules.clock ?? true)
+    readonly property bool clockAllowed: (autoMode || Cfg.idleMode === "clock") && (Cfg.modules.clock ?? true)
+    readonly property bool showClock: clockAllowed && (Cfg.get("idle.showClock", true))
+    /** The day and the date beside the time, using the configured date format. */
+    readonly property bool showDate: clockAllowed && Cfg.get("idle.showDate", false)
     readonly property bool playing: App.media.active !== null && App.media.active.playing
                                     && (Cfg.modules.media ?? true)
+    // "media.idleBadge" is the older spelling of the same switch; either off wins.
     readonly property bool showCover: autoMode && playing && (Cfg.media.idleBadge ?? true)
+                                      && (Cfg.get("idle.showMediaBadge", true))
                                       && (!App.lock.locked || (Cfg.lockScreen.showMedia ?? true))
     readonly property bool hasUnread: App.notifications.count > 0 && !App.notifications.doNotDisturb
                                       && (Cfg.modules.notifications ?? true)
+                                      && (Cfg.get("idle.showNotificationDot", true))
     readonly property bool lowBattery: (Cfg.modules.battery ?? true) && App.battery.present
                                        && App.battery.percent <= 15 && !App.battery.charging
+                                       && (Cfg.get("idle.showBatteryDot", true))
     /**
      * A job the user sent away is still theirs, so the pill keeps a face on it.
      * This is the whole of "continue in background": no window, no taskbar
@@ -32,6 +42,7 @@ Item {
 
     readonly property bool showCalendarHint: autoMode
         && (Cfg.modules.calendar ?? true)
+        && (Cfg.get("idle.showCalendarHint", true))
         && (Cfg.get("calendar.showInIdle", true))
         && App.calendar !== null
         && App.calendar !== undefined
@@ -77,6 +88,16 @@ Item {
             font.family: Theme.fontFamily
             font.pixelSize: Theme.size(13)
             font.weight: Font.DemiBold
+        }
+
+        Text {
+            visible: view.showDate
+            anchors.verticalCenter: parent.verticalCenter
+            text: App.clock.date
+            color: Theme.muted
+            font.family: Theme.fontFamily
+            font.pixelSize: Theme.size(11)
+            font.weight: Font.Medium
         }
 
         Text {

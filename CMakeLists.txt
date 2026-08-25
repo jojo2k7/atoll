@@ -66,6 +66,7 @@ qt_add_executable(atoll
     src/ai/commandrunner.cpp       src/ai/commandrunner.h
     src/ai/credentialstore.cpp     src/ai/credentialstore.h
     src/ai/geminiprovider.cpp      src/ai/geminiprovider.h
+    src/ai/openrouterprovider.cpp  src/ai/openrouterprovider.h
     src/ai/permissionbroker.cpp    src/ai/permissionbroker.h
     src/ai/permissionhook.cpp      src/ai/permissionhook.h
     src/ai/screencapture.cpp       src/ai/screencapture.h
@@ -81,6 +82,7 @@ qt_add_executable(atoll
     src/dbus/mprismanager.cpp      src/dbus/mprismanager.h
 
     src/system/battery.cpp         src/system/battery.h
+    src/system/bluetooth.cpp       src/system/bluetooth.h
     src/system/clock.cpp           src/system/clock.h
     src/system/lockmonitor.cpp     src/system/lockmonitor.h
     src/system/visualizer.cpp      src/system/visualizer.h

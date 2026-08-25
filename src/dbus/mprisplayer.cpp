@@ -208,6 +208,17 @@ void MprisPlayer::applyPlayerProperties(const QVariantMap &properties)
     readBool(u"CanSeek"_s, m_canSeek, capabilities);
     readBool(u"Shuffle"_s, m_shuffle, options);
 
+    // MPRIS has no "can shuffle"/"can loop" capability flag; a player that
+    // supports these exposes the properties at all. Latch on first sight.
+    if (!m_canShuffle && properties.contains(u"Shuffle"_s)) {
+        m_canShuffle = true;
+        options = true;
+    }
+    if (!m_canLoop && properties.contains(u"LoopStatus"_s)) {
+        m_canLoop = true;
+        options = true;
+    }
+
     if (properties.contains(u"LoopStatus"_s)) {
         const QString value = properties.value(u"LoopStatus"_s).toString();
         if (m_loopStatus != value) {

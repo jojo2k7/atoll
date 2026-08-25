@@ -43,6 +43,9 @@ QString CredentialStore::environmentVariable(const QString &provider)
         const QString gemini = qEnvironmentVariable("GEMINI_API_KEY");
         return gemini.isEmpty() ? qEnvironmentVariable("GOOGLE_API_KEY") : gemini;
     }
+    if (provider == u"openrouter"_s) {
+        return qEnvironmentVariable("OPENROUTER_API_KEY");
+    }
     return qEnvironmentVariable("ANTHROPIC_API_KEY");
 }
 

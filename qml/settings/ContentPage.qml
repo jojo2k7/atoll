@@ -33,6 +33,51 @@ SettingsPage {
     }
 
     SettingsGroup {
+        title: qsTr("Pill contents")
+
+        BoolSetting {
+            label: qsTr("Clock")
+            key: "idle.showClock"
+            defaultValue: true
+        }
+
+        BoolSetting {
+            label: qsTr("Day and date")
+            description: qsTr("The date next to the time, in the format set further down this page.")
+            key: "idle.showDate"
+            defaultValue: false
+        }
+
+        BoolSetting {
+            label: qsTr("Cover of what is playing")
+            description: qsTr("While music plays. \"Show a cover on the resting island\" under Media also has to be on.")
+            key: "idle.showMediaBadge"
+            defaultValue: true
+        }
+
+        BoolSetting {
+            label: qsTr("Notification dot")
+            description: qsTr("The pulsing accent dot while notifications are waiting.")
+            key: "idle.showNotificationDot"
+            defaultValue: true
+        }
+
+        BoolSetting {
+            label: qsTr("Low battery dot")
+            key: "idle.showBatteryDot"
+            defaultValue: true
+        }
+
+        BoolSetting {
+            label: qsTr("Next calendar event")
+            description: qsTr("\"Show in resting island\" under Calendar also has to be on.")
+            key: "idle.showCalendarHint"
+            defaultValue: true
+            last: true
+        }
+    }
+
+    SettingsGroup {
         title: qsTr("Sources")
 
         BoolSetting {
@@ -72,6 +117,22 @@ SettingsPage {
             label: qsTr("Battery")
             key: "modules.battery"
             defaultValue: true
+        }
+
+        BoolSetting {
+            label: qsTr("Bluetooth")
+            description: qsTr("Adapter power and device connections, managed from the dashboard.")
+            key: "modules.bluetooth"
+            defaultValue: true
+        }
+
+        BoolSetting {
+            label: qsTr("Bluetooth device panel")
+            description: qsTr("Adds a collapsible panel of paired devices to the dashboard; click its header to fold or unfold it.")
+            key: "bluetooth.showInExpanded"
+            defaultValue: false
+            enabled: Cfg.get("modules.bluetooth", true)
+            opacity: enabled ? 1 : 0.45
         }
 
         BoolSetting {

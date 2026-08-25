@@ -175,6 +175,16 @@ Item {
                 font.pixelSize: Theme.size(10)
                 elide: Text.ElideRight
             }
+
+            // Waiting for a device must not mean waiting out the timer: one
+            // click hands the island back.
+            RoundButton {
+                anchors.horizontalCenter: parent.horizontalCenter
+                width: 24
+                height: 24
+                icon: ["window-close", "dialog-cancel"]
+                onClicked: view.share.dismiss()
+            }
         }
     }
 

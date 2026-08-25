@@ -31,10 +31,21 @@ Item {
         return player.artist
     }
 
-    // Sum of widths of the configured transport buttons.
+    // Transport buttons this player actually supports: the classic three
+    // always, shuffle and repeat only when the player exposes those MPRIS
+    // properties at all.
+    readonly property var transportModel: {
+        const p = view.player
+        const b = ["previous", "playPause", "next"]
+        if (p && p.canShuffle) b.unshift("shuffle")
+        if (p && p.canLoop) b.push("repeat")
+        return b
+    }
+
+    // Sum of widths of the transport buttons.
     readonly property int transportWidth: {
         let w = 0
-        for (const b of Cfg.transportButtons) {
+        for (const b of view.transportModel) {
             w += (b === "playPause") ? 28 : 26
         }
         return Math.max(26, w)
@@ -155,7 +166,7 @@ Item {
                 }
 
                 Repeater {
-                    model: Cfg.transportButtons
+                    model: view.transportModel
 
                     delegate: Item {
                         id: compactBtn

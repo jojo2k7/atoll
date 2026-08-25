@@ -9,6 +9,7 @@
 #include "ai/claudecliprovider.h"
 #include "ai/credentialstore.h"
 #include "ai/geminiprovider.h"
+#include "ai/openrouterprovider.h"
 #include "ai/permissionbroker.h"
 #include "ai/screencapture.h"
 #include "config/config.h"
@@ -51,10 +52,12 @@ AiService::AiService(Config *config, QObject *parent)
 {
     m_anthropic = new AnthropicProvider(m_network, this);
     m_gemini = new GeminiProvider(m_network, this);
+    m_openrouter = new OpenRouterProvider(m_network, this);
     m_cli = new ClaudeCliProvider(this);
 
     for (AiBackend *provider : {static_cast<AiBackend *>(m_anthropic),
                                 static_cast<AiBackend *>(m_gemini),
+                                static_cast<AiBackend *>(m_openrouter),
                                 static_cast<AiBackend *>(m_cli)}) {
         connect(provider, &AiBackend::textDelta, this, [this](const QString &text) {
             if (m_testing) {
@@ -79,6 +82,9 @@ AiService::AiService(Config *config, QObject *parent)
         });
         connect(provider, &AiBackend::turnEnded, this, &AiService::onTurnEnded);
         connect(provider, &AiBackend::failed, this, [this](const QString &reason) {
+            if (qEnvironmentVariableIntValue("ATOLL_DEBUG_AI") > 0) {
+                qWarning("atoll: ai backend failed: %s", qUtf8Printable(reason));
+            }
             if (m_testing) {
                 m_testing = false;
                 m_keyTest = reason;
@@ -141,7 +147,7 @@ AiService::~AiService() = default;
 QString AiService::provider() const
 {
     const QString configured = m_config->value(u"ai.provider"_s, u"claude-cli"_s).toString();
-    if (configured == u"gemini"_s || configured == u"anthropic"_s) {
+    if (configured == u"gemini"_s || configured == u"anthropic"_s || configured == u"openrouter"_s) {
         return configured;
     }
     return u"claude-cli"_s;
@@ -152,6 +158,9 @@ QString AiService::providerLabel() const
     const QString name = provider();
     if (name == u"gemini"_s) {
         return u"Gemini"_s;
+    }
+    if (name == u"openrouter"_s) {
+        return u"OpenRouter"_s;
     }
     return u"Claude"_s;
 }
@@ -164,6 +173,9 @@ AiBackend *AiService::activeBackend() const
     }
     if (name == u"anthropic"_s) {
         return m_anthropic;
+    }
+    if (name == u"openrouter"_s) {
+        return m_openrouter;
     }
     return m_cli;
 }
@@ -761,6 +773,12 @@ void AiService::cancel()
 
 void AiService::ask(const QString &text)
 {
+    if (qEnvironmentVariableIntValue("ATOLL_DEBUG_AI") > 0) {
+        qWarning("atoll: ai ask '%s' provider=%s configured=%d key=%d baseUrl='%s'",
+                 qUtf8Printable(text.trimmed()), qUtf8Printable(provider()),
+                 configured(), m_credentials->hasKey(provider()),
+                 qUtf8Printable(m_config->value(u"ai.baseUrl"_s, QString()).toString()));
+    }
     const QString question = text.trimmed();
     if (question.isEmpty()) {
         return;
@@ -868,6 +886,11 @@ void AiService::ask(const QString &text)
 void AiService::runTurn()
 {
     AiBackend *target = activeBackend();
+    if (qEnvironmentVariableIntValue("ATOLL_DEBUG_AI") > 0) {
+        qWarning("atoll: ai turn backend=%s model=%s url='%s'",
+                 qUtf8Printable(target->id()), qUtf8Printable(model()),
+                 qUtf8Printable(m_config->value(u"ai.baseUrl"_s, QString()).toString()));
+    }
     if (auto *keyed = qobject_cast<AiProvider *>(target)) {
         keyed->setApiKey(m_credentials->key(provider()));
     }
@@ -905,6 +928,10 @@ void AiService::onTurnEnded(const QString &stopReason,
                             const QList<AiToolCall> &calls,
                             const QJsonArray &raw)
 {
+    if (qEnvironmentVariableIntValue("ATOLL_DEBUG_AI") > 0) {
+        qWarning("atoll: ai turn ended: %s (%d tool call(s), %d raw block(s))",
+                 qUtf8Printable(stopReason), calls.size(), raw.size());
+    }
     if (m_testing) {
         m_testing = false;
         m_keyTest = tr("The key works.");

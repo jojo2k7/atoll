@@ -29,6 +29,10 @@ Item {
 
     signal collapseRequested()
 
+    // The view is built fresh each time the island opens, which makes it the
+    // natural moment to catch up on whatever BlueZ has been doing.
+    Component.onCompleted: App.bluetooth.refresh()
+
     implicitWidth: Cfg.expandedWidth
     // Content scrolls internally; the island is capped at 560px.
     implicitHeight: Math.min(560, scroller.contentHeight)
@@ -240,12 +244,18 @@ Item {
                             }
                         }
 
-                        // Configurable transport buttons
+                        // Transport buttons the active player supports
                         Row {
                             spacing: 2
 
                             Repeater {
-                                model: Cfg.transportButtons
+                                model: {
+                                    const p = view.player
+                                    const b = ["previous", "playPause", "next"]
+                                    if (p && p.canShuffle) b.unshift("shuffle")
+                                    if (p && p.canLoop) b.push("repeat")
+                                    return b
+                                }
 
                                 delegate: Item {
                                     id: expBtn
@@ -435,7 +445,9 @@ Item {
             }
 
             // ---- toggles ------------------------------------------------------
-            Row {
+            // A Flow rather than a Row: with every module on, one more toggle
+            // than fits simply wraps to a second line instead of falling off.
+            Flow {
                 visible: !view.showingCalendar
                 width: parent.width
                 spacing: 8
@@ -462,6 +474,16 @@ Item {
                 }
 
                 QuickToggle {
+                    visible: (Cfg.modules.bluetooth ?? true) && App.bluetooth.present
+                    icon: [App.bluetooth.powered ? "bluetooth-active" : "bluetooth-disabled",
+                           "preferences-system-bluetooth"]
+                    label: qsTr("Bluetooth")
+                    checked: App.bluetooth.powered
+                    opacity: App.bluetooth.powered || App.bluetooth.connectedCount > 0 ? 1 : 0.55
+                    onToggled: App.bluetooth.setPowered(!App.bluetooth.powered)
+                }
+
+                QuickToggle {
                     visible: Cfg.modules.lyrics ?? true
                     icon: ["view-media-lyrics", "view-media-track"]
                     label: qsTr("Lyrics")
@@ -475,6 +497,200 @@ Item {
                     onToggled: {
                         App.openSettings()
                         view.collapseRequested()
+                    }
+                }
+            }
+
+            // ---- bluetooth -----------------------------------------------------
+            // Opt-in from the settings, and folded even then: one header line
+            // until it is clicked, so the room stays for what is playing.
+            Rectangle {
+                id: bluetoothCard
+
+                property bool open: false
+
+                readonly property bool available: (Cfg.modules.bluetooth ?? true) && App.bluetooth.present
+                                                  && Cfg.get("bluetooth.showInExpanded", false)
+                                                  && (App.bluetooth.powered || App.bluetooth.connectedCount > 0)
+                visible: !view.showingCalendar && available
+                width: parent.width
+                height: visible ? bluetoothBody.implicitHeight + 20 : 0
+                radius: 16
+                color: Qt.rgba(1, 1, 1, 0.06)
+
+                Column {
+                    id: bluetoothBody
+                    anchors.fill: parent
+                    anchors.margins: 10
+                    spacing: 4
+
+                    Item {
+                        id: bluetoothHeader
+                        width: parent.width
+                        height: 26
+
+                        Rectangle {
+                            anchors.fill: parent
+                            radius: 8
+                            color: Qt.rgba(1, 1, 1, btHeadArea.containsMouse ? 0.06 : 0.0)
+
+                            Behavior on color {
+                                ColorAnimation { duration: Theme.fast }
+                            }
+                        }
+
+                        Row {
+                            anchors.left: parent.left
+                            anchors.leftMargin: 2
+                            anchors.verticalCenter: parent.verticalCenter
+                            spacing: 7
+
+                            IconImage {
+                                anchors.verticalCenter: parent.verticalCenter
+                                width: 15
+                                height: 15
+                                names: [App.bluetooth.powered ? "bluetooth-active" : "bluetooth-disabled",
+                                        "preferences-system-bluetooth"]
+                            }
+
+                            Text {
+                                anchors.verticalCenter: parent.verticalCenter
+                                text: qsTr("Bluetooth")
+                                color: Theme.foreground
+                                font.family: Theme.fontFamily
+                                font.pixelSize: Theme.size(11)
+                                font.weight: Font.DemiBold
+                            }
+                        }
+
+                        Row {
+                            anchors.right: parent.right
+                            anchors.rightMargin: 2
+                            anchors.verticalCenter: parent.verticalCenter
+                            spacing: 6
+
+                            Text {
+                                anchors.verticalCenter: parent.verticalCenter
+                                visible: App.bluetooth.connectedCount > 0 || !App.bluetooth.powered
+                                text: !App.bluetooth.powered
+                                      ? qsTr("Off")
+                                      : qsTr("%1 connected").arg(App.bluetooth.connectedCount)
+                                color: Theme.muted
+                                font.family: Theme.fontFamily
+                                font.pixelSize: Theme.size(9)
+                            }
+
+                            IconImage {
+                                anchors.verticalCenter: parent.verticalCenter
+                                width: 12
+                                height: 12
+                                names: bluetoothCard.open ? ["arrow-up", "go-up"]
+                                                          : ["arrow-down", "go-down"]
+                            }
+                        }
+
+                        // A MouseArea rather than a TapHandler: it has to
+                        // take the click, or the island's own tap handler
+                        // sees it too and folds the whole dashboard away.
+                        MouseArea {
+                            id: btHeadArea
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: bluetoothCard.open = !bluetoothCard.open
+                        }
+                    }
+
+                    Repeater {
+                        model: bluetoothCard.open ? App.bluetooth.devices : []
+
+                        delegate: Item {
+                            id: deviceRow
+                            required property var modelData
+
+                            readonly property bool connected: modelData.connected ?? false
+                            readonly property bool busy: modelData.busy ?? false
+
+                            width: parent.width
+                            height: 28
+
+                            Rectangle {
+                                anchors.fill: parent
+                                radius: 8
+                                color: Qt.rgba(1, 1, 1, rowArea.containsMouse ? 0.07 : 0.03)
+                            }
+
+                            IconImage {
+                                id: deviceIcon
+                                anchors.left: parent.left
+                                anchors.leftMargin: 6
+                                anchors.verticalCenter: parent.verticalCenter
+                                width: 15
+                                height: 15
+                                names: [deviceRow.modelData.icon, "preferences-system-bluetooth",
+                                        "audio-card"]
+                                opacity: deviceRow.busy && !deviceRow.connected ? 0.5 : 1
+                            }
+
+                            Text {
+                                anchors.left: deviceIcon.right
+                                anchors.leftMargin: 8
+                                anchors.right: deviceStatus.left
+                                anchors.rightMargin: 8
+                                anchors.verticalCenter: parent.verticalCenter
+                                text: deviceRow.modelData.name
+                                color: Theme.foreground
+                                font.family: Theme.fontFamily
+                                font.pixelSize: Theme.size(10)
+                                font.weight: Font.Medium
+                                elide: Text.ElideRight
+                                maximumLineCount: 1
+                            }
+
+                            Text {
+                                id: deviceStatus
+                                anchors.right: parent.right
+                                anchors.rightMargin: 6
+                                anchors.verticalCenter: parent.verticalCenter
+                                text: {
+                                    if (deviceRow.busy) {
+                                        return deviceRow.modelData.busyConnect
+                                               ? qsTr("Connecting…") : qsTr("Disconnecting…")
+                                    }
+                                    if (deviceRow.connected) return qsTr("Connected")
+                                    if (deviceRow.modelData.paired) return qsTr("Paired")
+                                    return qsTr("Available")
+                                }
+                                color: deviceRow.busy ? Theme.accent
+                                                      : (deviceRow.connected ? Theme.positive : Theme.muted)
+                                font.family: Theme.fontFamily
+                                font.pixelSize: Theme.size(9)
+                            }
+
+                            MouseArea {
+                                id: rowArea
+                                anchors.fill: parent
+                                hoverEnabled: true
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: {
+                                    if (deviceRow.connected) {
+                                        App.bluetooth.disconnectDevice(deviceRow.modelData.path)
+                                    } else {
+                                        App.bluetooth.connectDevice(deviceRow.modelData.path)
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    Text {
+                        leftPadding: 6
+                        visible: bluetoothCard.open && App.bluetooth.devices.length === 0
+                        text: App.bluetooth.powered ? qsTr("No paired devices nearby")
+                                                    : qsTr("Bluetooth is off")
+                        color: Theme.muted
+                        font.family: Theme.fontFamily
+                        font.pixelSize: Theme.size(10)
                     }
                 }
             }

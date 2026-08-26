@@ -34,9 +34,24 @@ Item {
     Component.onCompleted: App.bluetooth.refresh()
 
     implicitWidth: Cfg.expandedWidth
-    // Content scrolls internally; the island is capped at 560px.
-    implicitHeight: Math.min(560, scroller.contentHeight)
+    /**
+     * Open as tall as the screen has room for rather than stopping at a
+     * fixed cap: with every module, the backlog and the bluetooth panel on,
+     * the old fold swallowed the toggles outright. The stage asks the
+     * compositor for the extra surface room; whatever still cannot fit -
+     * a small screen, a tall backlog - scrolls.
+     */
+    readonly property real maxHeight: {
+        const avail = Number.isFinite(Screen.desktopAvailableHeight)
+                      ? Screen.desktopAvailableHeight : 0
+        // Keep clear of panels the island floats over, plus the padding the
+        // stage adds around it when asking for surface room.
+        return avail > 480 ? avail - 96 : 560
+    }
+    implicitHeight: Math.min(maxHeight, scroller.contentHeight)
 
+    // Smooth wheel scrolling for mice and touchpads alike; dragging is
+    // covered by the flickable below being interactive.
     WheelHandler {
         target: scroller
         acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
@@ -48,7 +63,9 @@ Item {
         contentHeight: column.implicitHeight + 28
         contentWidth: width
         clip: true
-        interactive: false
+        // Left interactive so the page can be dragged as well as wheeled:
+        // with every module open there is more below the fold than a wheel
+        // alone could always be counted on to bring back up.
         boundsBehavior: Flickable.StopAtBounds
 
         Column {
@@ -120,7 +137,7 @@ Item {
                 width: parent.width
                 height: 30
                 radius: 10
-                color: Qt.rgba(1, 1, 1, 0.06)
+                color: Theme.tint(0.06)
 
                 Row {
                     anchors.fill: parent
@@ -138,7 +155,7 @@ Item {
                             height: parent.height
                             radius: 8
                             color: view.selectedTab === index
-                                   ? Qt.rgba(1, 1, 1, 0.12)
+                                   ? Theme.tint(0.12)
                                    : "transparent"
 
                             Behavior on color {
@@ -177,7 +194,7 @@ Item {
                 width: parent.width
                 height: 108
                 radius: 16
-                color: Qt.rgba(1, 1, 1, 0.06)
+                color: Theme.tint(0.06)
 
                 Row {
                     anchors.fill: parent
@@ -349,7 +366,7 @@ Item {
                 width: parent.width
                 height: visible ? lyrics.implicitHeight + 24 : 0
                 radius: 16
-                color: Qt.rgba(1, 1, 1, 0.06)
+                color: Theme.tint(0.06)
 
                 LyricsView {
                     id: lyrics
@@ -359,18 +376,23 @@ Item {
             }
 
             // ---- notifications ------------------------------------------------
+            // The whole backlog lays out into the page rather than into a
+            // private viewport of its own: a scrollable list in here used to
+            // swallow the wheel whenever the pointer rested on it, which left
+            // the toggles and bluetooth below stranded past the fold.
             Item {
                 width: parent.width
-                height: Math.min(168, Math.max(0, App.notifications.count * 58))
-                visible: !view.showingCalendar && App.notifications.count > 0
+                readonly property int rows: App.notifications.count
+                height: rows > 0 ? rows * 52 + (rows - 1) * 6 : 0
+                visible: !view.showingCalendar && rows > 0
 
                 ListView {
                     id: history
                     anchors.fill: parent
                     clip: true
                     spacing: 6
+                    interactive: false
                     model: App.notifications
-                    boundsBehavior: Flickable.StopAtBounds
 
                     delegate: Rectangle {
                         required property int index
@@ -379,7 +401,7 @@ Item {
                         width: history.width
                         height: 52
                         radius: 12
-                        color: Qt.rgba(1, 1, 1, hover.hovered ? 0.1 : 0.05)
+                        color: Theme.tint(hover.hovered ? 0.1 : 0.05)
 
                         Behavior on color {
                             ColorAnimation {
@@ -389,6 +411,14 @@ Item {
 
                         HoverHandler {
                             id: hover
+                        }
+
+                        // A click anywhere that is not the close button means
+                        // "take me to this app", same as on the popup.
+                        MouseArea {
+                            anchors.fill: parent
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: App.notifications.open(model.uid)
                         }
 
                         Row {
@@ -438,6 +468,77 @@ Item {
                                 opacity: hover.hovered ? 1 : 0
                                 icon: ["window-close"]
                                 onClicked: App.notifications.close(model.uid)
+                            }
+                        }
+                    }
+                }
+            }
+
+            // ---- privacy -------------------------------------------------------
+            // Who is holding the camera, the microphone or the screen right
+            // now - the detail behind the dot on the resting pill.
+            Rectangle {
+                id: privacyCard
+
+                readonly property var indicators: {
+                    const list = []
+                    const sources = [
+                        { active: App.privacy.cameraActive, color: "#ff453a",
+                          label: qsTr("Camera"), users: App.privacy.cameraUsers },
+                        { active: App.privacy.microphoneActive, color: "#ff9f0a",
+                          label: qsTr("Microphone"), users: App.privacy.microphoneUsers },
+                        { active: App.privacy.shareActive, color: "#bf5af2",
+                          label: qsTr("Screen"), users: App.privacy.shareUsers }
+                    ]
+                    for (const source of sources) {
+                        if (source.active) {
+                            list.push(source)
+                        }
+                    }
+                    return list
+                }
+
+                visible: !view.showingCalendar && (Cfg.modules.privacy ?? true) && indicators.length > 0
+                width: parent.width
+                height: visible ? privacyColumn.implicitHeight + 20 : 0
+                radius: 16
+                color: Theme.tint(0.06)
+
+                Column {
+                    id: privacyColumn
+                    anchors.fill: parent
+                    anchors.margins: 10
+                    spacing: 6
+
+                    Repeater {
+                        model: privacyCard.indicators
+
+                        delegate: Row {
+                            required property var modelData
+
+                            spacing: 8
+                            anchors.left: parent.left
+                            anchors.right: parent.right
+
+                            Rectangle {
+                                anchors.verticalCenter: parent.verticalCenter
+                                width: 7
+                                height: 7
+                                radius: 3.5
+                                color: modelData.color
+                            }
+
+                            Text {
+                                anchors.verticalCenter: parent.verticalCenter
+                                width: parent.width - parent.spacing - 15
+                                text: modelData.users.length > 0
+                                      ? modelData.label + " - " + modelData.users.join(", ")
+                                      : modelData.label
+                                color: Theme.foreground
+                                font.family: Theme.fontFamily
+                                font.pixelSize: Theme.size(11)
+                                elide: Text.ElideRight
+                                maximumLineCount: 1
                             }
                         }
                     }
@@ -516,7 +617,7 @@ Item {
                 width: parent.width
                 height: visible ? bluetoothBody.implicitHeight + 20 : 0
                 radius: 16
-                color: Qt.rgba(1, 1, 1, 0.06)
+                color: Theme.tint(0.06)
 
                 Column {
                     id: bluetoothBody
@@ -532,7 +633,7 @@ Item {
                         Rectangle {
                             anchors.fill: parent
                             radius: 8
-                            color: Qt.rgba(1, 1, 1, btHeadArea.containsMouse ? 0.06 : 0.0)
+                            color: Theme.tint(btHeadArea.containsMouse ? 0.06 : 0.0)
 
                             Behavior on color {
                                 ColorAnimation { duration: Theme.fast }
@@ -617,7 +718,7 @@ Item {
                             Rectangle {
                                 anchors.fill: parent
                                 radius: 8
-                                color: Qt.rgba(1, 1, 1, rowArea.containsMouse ? 0.07 : 0.03)
+                                color: Theme.tint(rowArea.containsMouse ? 0.07 : 0.03)
                             }
 
                             IconImage {
@@ -734,7 +835,7 @@ Item {
                         width: parent.width
                         height: 52
                         radius: 12
-                        color: Qt.rgba(1, 1, 1, evStatus === "ongoing" ? 0.09 : 0.05)
+                        color: Theme.tint(evStatus === "ongoing" ? 0.09 : 0.05)
                         opacity: evStatus === "past" ? 0.55 : 1.0
 
                         Row {
@@ -847,7 +948,7 @@ Item {
         width: 3
         height: Math.max(24, scroller.height * scroller.visibleArea.heightRatio)
         radius: 1.5
-        color: Qt.rgba(1, 1, 1, 0.4)
+        color: Theme.tint(0.4)
         visible: scroller.contentHeight > scroller.height + 4
         opacity: scroller.moving || scroller.flicking ? 1.0 : 0.5
 

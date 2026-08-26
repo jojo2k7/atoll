@@ -93,7 +93,8 @@ QVariantMap Config::defaults()
     "clock": true,
     "lyrics": true,
     "sharing": true,
-    "ai": true
+    "ai": true,
+    "privacy": true
   },
   "osd": {
     "timeout": 1700,
@@ -106,7 +107,8 @@ QVariantMap Config::defaults()
     "criticalStaysOpen": true,
     "maxBodyLines": 3,
     "dnd": false,
-    "showActions": true
+    "showActions": true,
+    "openOnClick": true
   },
   "media": {
     "showOnPlay": true,
@@ -188,7 +190,8 @@ QVariantMap Config::defaults()
     "showMediaBadge": true,
     "showNotificationDot": true,
     "showBatteryDot": true,
-    "showCalendarHint": true
+    "showCalendarHint": true,
+    "showPrivacyIndicators": true
   }
 })JSON";
 

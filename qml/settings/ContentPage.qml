@@ -69,6 +69,13 @@ SettingsPage {
         }
 
         BoolSetting {
+            label: qsTr("Privacy indicators")
+            description: qsTr("One dot, blended orange, red and violet while an application is using the microphone, the camera or your screen.")
+            key: "idle.showPrivacyIndicators"
+            defaultValue: true
+        }
+
+        BoolSetting {
             label: qsTr("Next calendar event")
             description: qsTr("\"Show in resting island\" under Calendar also has to be on.")
             key: "idle.showCalendarHint"
@@ -123,6 +130,12 @@ SettingsPage {
             label: qsTr("Bluetooth")
             description: qsTr("Adapter power and device connections, managed from the dashboard.")
             key: "modules.bluetooth"
+            defaultValue: true
+        }
+        BoolSetting {
+            label: qsTr("Privacy indicators")
+            description: qsTr("Watches PipeWire for camera, microphone and screen capture. Without it the dots never light.")
+            key: "modules.privacy"
             defaultValue: true
         }
 

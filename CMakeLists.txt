@@ -41,6 +41,23 @@ else()
 endif()
 add_feature_info(LockScreenOverlay ATOLL_LOCKSCREEN_OVERLAY "keep the island visible while the screen is locked")
 
+# Raising the application behind a clicked notification is an xdg-activation
+# token away: Atoll mints one and hands it to whatever it launches or asks to
+# activate, so the compositor lets that window come forward.
+find_package(Qt6 QUIET COMPONENTS WaylandClient)
+if(ATOLL_LOCKSCREEN_OVERLAY AND TARGET Qt6::WaylandClient)
+    set(ATOLL_XDG_ACTIVATION ON)
+else()
+    message(STATUS "wayland-scanner or Qt6::WaylandClient missing: clicking a notification will not be able to hand new windows focus")
+endif()
+add_feature_info(NotificationActivation ATOLL_XDG_ACTIVATION "focus the app behind a clicked notification")
+
+# The privacy dots read the PipeWire graph - which application is capturing
+# from the camera or microphone, and which is receiving your screen. Without
+# libpipewire everything else still builds; the indicators simply stay dark.
+pkg_check_modules(PipeWire IMPORTED_TARGET libpipewire-0.3)
+add_feature_info(PrivacyIndicators PipeWire_FOUND "camera, microphone and screen-share indicators on the island")
+
 qt_standard_project_setup(REQUIRES 6.7)
 
 # Atoll keeps its QML in views/ and components/ subdirectories but exposes them
@@ -81,10 +98,12 @@ qt_add_executable(atoll
     src/dbus/mprisplayer.cpp       src/dbus/mprisplayer.h
     src/dbus/mprismanager.cpp      src/dbus/mprismanager.h
 
+    src/system/appactivator.cpp       src/system/appactivator.h
     src/system/battery.cpp         src/system/battery.h
     src/system/bluetooth.cpp       src/system/bluetooth.h
     src/system/clock.cpp           src/system/clock.h
     src/system/lockmonitor.cpp     src/system/lockmonitor.h
+    src/system/privacymonitor.cpp  src/system/privacymonitor.h
     src/system/visualizer.cpp      src/system/visualizer.h
 
     src/calendar/calendarservice.cpp src/calendar/calendarservice.h
@@ -126,6 +145,36 @@ if(ATOLL_LOCKSCREEN_OVERLAY)
     )
     target_compile_definitions(atoll PRIVATE ATOLL_LOCKSCREEN_OVERLAY)
     target_link_libraries(atoll PRIVATE PkgConfig::Wayland Qt6::GuiPrivate)
+endif()
+
+if(ATOLL_XDG_ACTIVATION)
+    set(ATOLL_ACTIVATION_PROTOCOL ${CMAKE_CURRENT_SOURCE_DIR}/protocols/xdg-activation-v1.xml)
+    set(ATOLL_ACTIVATION_HEADER ${CMAKE_CURRENT_BINARY_DIR}/xdg-activation-v1-client-protocol.h)
+    set(ATOLL_ACTIVATION_SOURCE ${CMAKE_CURRENT_BINARY_DIR}/xdg-activation-v1-protocol.c)
+
+    add_custom_command(
+        OUTPUT ${ATOLL_ACTIVATION_HEADER}
+        COMMAND ${WAYLAND_SCANNER_EXECUTABLE} client-header ${ATOLL_ACTIVATION_PROTOCOL} ${ATOLL_ACTIVATION_HEADER}
+        DEPENDS ${ATOLL_ACTIVATION_PROTOCOL}
+        VERBATIM
+    )
+    add_custom_command(
+        OUTPUT ${ATOLL_ACTIVATION_SOURCE}
+        COMMAND ${WAYLAND_SCANNER_EXECUTABLE} private-code ${ATOLL_ACTIVATION_PROTOCOL} ${ATOLL_ACTIVATION_SOURCE}
+        DEPENDS ${ATOLL_ACTIVATION_PROTOCOL}
+        VERBATIM
+    )
+
+    target_sources(atoll PRIVATE
+        ${ATOLL_ACTIVATION_HEADER}
+        ${ATOLL_ACTIVATION_SOURCE}
+    )
+    target_compile_definitions(atoll PRIVATE ATOLL_XDG_ACTIVATION)
+    target_link_libraries(atoll PRIVATE PkgConfig::Wayland Qt6::WaylandClient)
+endif()
+
+if(PipeWire_FOUND)
+    target_compile_definitions(atoll PRIVATE ATOLL_PIPEWIRE)
 endif()
 
 # The generated QML type registration includes headers by base name, so every
@@ -246,6 +295,7 @@ target_link_libraries(atoll PRIVATE
     KF6::I18n
     LayerShellQtInterface
     PkgConfig::DBus1
+    $<TARGET_NAME_IF_EXISTS:PkgConfig::PipeWire>
 )
 
 install(TARGETS atoll RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})

@@ -6,6 +6,7 @@
 
 #include "app/imagestore.h"
 #include "config/config.h"
+#include "system/appactivator.h"
 
 #include <QDBusConnection>
 #include <QDBusMessage>
@@ -18,9 +19,10 @@ namespace
 constexpr int HistoryLimit = 50;
 }
 
-NotificationModel::NotificationModel(Config *config, QObject *parent)
+NotificationModel::NotificationModel(Config *config, AppActivator *activator, QObject *parent)
     : QAbstractListModel(parent)
     , m_config(config)
+    , m_activator(activator)
 {
     m_dnd = m_config->value(u"notifications.dnd"_s, false).toBool();
 }
@@ -269,4 +271,44 @@ bool NotificationModel::invokeAction(quint64 uid, const QString &actionKey)
     const bool sent = QDBusConnection::sessionBus().send(signal);
     dismiss(uid);
     return sent;
+}
+
+void NotificationModel::open(quint64 uid)
+{
+    const int row = indexOfUid(uid);
+    if (row < 0) {
+        return;
+    }
+    const NotificationData item = m_items.at(row);
+
+    // The polite path: Plasma's own daemon answers org.kde.Notifications on
+    // the same object, and InvokeAction makes *it* emit ActionInvoked from its
+    // well-known name - which senders accept, unlike a re-broadcast of ours.
+    bool handedToSender = false;
+    if (item.daemonId != 0 && item.actions.contains(u"default"_s)) {
+        auto message = QDBusMessage::createMethodCall(u"org.freedesktop.Notifications"_s,
+                                                      u"/org/freedesktop/Notifications"_s,
+                                                      u"org.kde.Notifications"_s,
+                                                      u"InvokeAction"_s);
+        message << item.daemonId << u"default"_s;
+        const QDBusMessage reply = QDBusConnection::sessionBus().call(message, QDBus::Block, 300);
+        handedToSender = reply.type() == QDBusMessage::ReplyMessage;
+    }
+    // Everywhere else, shout and hope: some senders take ActionInvoked from
+    // anyone who says it loudly enough.
+    if (!handedToSender && item.daemonId != 0) {
+        auto signal = QDBusMessage::createSignal(u"/org/freedesktop/Notifications"_s,
+                                                 u"org.freedesktop.Notifications"_s,
+                                                 u"ActionInvoked"_s);
+        signal << item.daemonId << u"default"_s;
+        QDBusConnection::sessionBus().send(signal);
+    }
+
+    // And the practical one: whatever ignored all of that still gets brought
+    // forward by name.
+    if (m_config->value(u"notifications.openOnClick"_s, true).toBool() && m_activator) {
+        m_activator->activate(item.desktopEntry, item.appName);
+    }
+
+    dismiss(uid);
 }

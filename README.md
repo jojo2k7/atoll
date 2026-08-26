@@ -29,9 +29,9 @@ particular.
 
 | State | What you see |
 |---|---|
-| **Idle** | The clock, the cover of whatever is playing and a dot for anything waiting - each of those is a switch, so the pill can carry the day and date instead, or nothing but the time. A satellite blob buds off it while music plays. |
+| **Idle** | The clock, the cover of whatever is playing and dots for anything waiting - each of those is a switch, so the pill can carry the day and date instead, or nothing but the time. A satellite blob buds off it while music plays. Green, amber and violet dots join them while an application holds the camera, the microphone or your screen. |
 | **OSD** | Volume, brightness, microphone, keyboard layout, power profile — anything Plasma announces. |
-| **Notification** | App icon or image, summary and body, with a progress bar for the notifications that carry one. |
+| **Notification** | App icon or image, summary and body, with a progress bar for the notifications that carry one. Click it and the app that sent it comes forward - Discord lands you back in the conversation, like a Plasma popup does. |
 | **Media** | Album art, scrolling title, album, spectrum, and transport controls that fade in on hover. While synced lyrics exist, the second line becomes the words being sung. |
 | **Expanded** | Clock, battery, seekable transport, a scrolling lyrics panel, notification history and quick toggles, on one tab - and today's calendar on the other. |
 | **Calendar** | Point Atoll at an ICS feed and the dashboard's second tab fills with today's events. The pill mentions the next one when it is less than an hour away. |
@@ -51,6 +51,11 @@ and it does not replace Plasma's OSD:
   keeps doing its job; Atoll mirrors it. Pairing each observed `Notify` call
   with its reply also recovers the id the daemon handed out, which is what
   makes closing a notification from the island possible.
+- **Camera, microphone and screen use** are read off the PipeWire graph: the
+  links between an application's capture streams and what they drink from say
+  who is recording you, and through which device. Nothing polls; the registry
+  pushes every change. Sink monitors are ignored, so a visualiser reading
+  your desktop audio lights nothing.
 - **Media** is plain MPRIS2, so Spotify, a browser tab and a local player all
   reach the island the same way: title, artist, album, cover art and position.
   Remote cover art (Spotify hands out an https URL) is fetched once and cached.
@@ -106,7 +111,8 @@ plus `cmake ninja qt6-shadertools extra-cmake-modules wayland` to build
 (`wayland-scanner` generates the lock-screen protocol; without it everything
 else still builds).
 Optional: `claude-code` for the assistant, `cava` for a real spectrum,
-`wireplumber` for volume control, `openssl` for encrypted sharing (see
+`wireplumber` for volume control, `libpipewire` for the privacy indicators,
+`openssl` for encrypted sharing (see
 [Sharing files](#sharing-files)), `polkit` and a polkit agent so the assistant
 can ask for administrator rights, `libsecret` to keep an API key in your
 keyring, and `xdg-desktop-portal-kde` to let it look at your screen.
@@ -468,8 +474,10 @@ while you watch. Keys you are most likely to want:
 | `appearance.accent` | `"auto"` follows the album art, or pin a colour. |
 | `effects.gooey` | The metaball merge between the island and its satellite. |
 | `notifications.ignoredApps` | Apps the island should stay quiet about. |
+| `notifications.openOnClick` | Whether clicking a notification raises or starts the app that sent it. |
+| `modules.privacy` | The camera, microphone and screen-share dots on the resting island. |
 | `modules.bluetooth` | Bluetooth power and device connections in the dashboard. |
-| `idle.*` | What the resting pill shows: clock, day and date, cover, dots, next event. |
+| `idle.*` | What the resting pill shows: clock, day and date, cover, dots, next event, privacy indicators. |
 | `media.preferred` | Player names to favour, in order. |
 | `lyrics.enabled` | Whether to look lyrics up at all. |
 | `lyrics.offsetMs` | Shifts every lyric line, for players that report position late. |
@@ -530,9 +538,12 @@ do not.
 
 ## Known limitations
 
-- Notification **actions** are best effort. As a bus observer Atoll can
-  re-broadcast `ActionInvoked`, but senders that filter on the daemon's bus
-  name will ignore it.
+- Notification **actions** are best effort. As a bus observer Atoll can ask
+  Plasma's daemon to invoke one on its behalf and re-broadcast `ActionInvoked`
+  where that is not available; senders that filter on the daemon's bus name
+  will ignore both. Clicking a notification therefore also resolves the app
+  from its desktop entry - or from its name - and raises it directly, which
+  covers most senders even when the action itself goes nowhere.
 - One island process per session. It serves every output you asked for; a
   second instance refuses to start.
 - Staying on the lock screen only works on KWin, and only for an installed

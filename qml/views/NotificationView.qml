@@ -137,7 +137,9 @@ Item {
             if (mouse.button === Qt.MiddleButton) {
                 App.notifications.close(view.notification.uid ?? 0)
             } else {
-                App.activateApp(view.notification.desktopEntry ?? "")
+                // Hand the app its default action and bring it forward, the
+                // way a Plasma popup does.
+                App.notifications.open(view.notification.uid ?? 0)
             }
             view.dismissRequested()
         }

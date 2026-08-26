@@ -9,6 +9,7 @@
 
 #include "notificationmonitor.h"
 
+class AppActivator;
 class Config;
 
 /**
@@ -45,7 +46,7 @@ public:
     };
     Q_ENUM(Roles)
 
-    explicit NotificationModel(Config *config, QObject *parent = nullptr);
+    explicit NotificationModel(Config *config, AppActivator *activator, QObject *parent = nullptr);
 
     int rowCount(const QModelIndex &parent = {}) const override;
     QVariant data(const QModelIndex &index, int role) const override;
@@ -69,6 +70,13 @@ public:
      * daemon's bus name accept it. See docs/notifications.md.
      */
     Q_INVOKABLE bool invokeAction(quint64 uid, const QString &actionKey);
+    /**
+     * What a click on a notification means: hand the sender its default
+     * action - through the daemon where that is possible, re-broadcast where
+     * it is not - and then raise or start the application itself, so chat
+     * clients like Discord land you where the message came from.
+     */
+    Q_INVOKABLE void open(quint64 uid);
 
 public Q_SLOTS:
     void onPosted(const NotificationData &notification);
@@ -87,6 +95,7 @@ private:
     QVariantMap toMap(const NotificationData &data) const;
 
     Config *m_config;
+    AppActivator *m_activator;
     QList<NotificationData> m_items;
     bool m_dnd = false;
 };

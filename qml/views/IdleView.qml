@@ -33,6 +33,27 @@ Item {
     readonly property bool lowBattery: (Cfg.modules.battery ?? true) && App.battery.present
                                        && App.battery.percent <= 15 && !App.battery.charging
                                        && (Cfg.get("idle.showBatteryDot", true))
+    readonly property bool showPrivacy: (Cfg.modules.privacy ?? true)
+                                        && (Cfg.get("idle.showPrivacyIndicators", true))
+    /**
+     * One light instead of three. Each live capture pushes its colour onto
+     * the same dot - microphone orange, camera red, screen share violet -
+     * blended into a gradient when more than one holds at once. Read straight
+     * off the PipeWire graph, so it is about capture in progress - not about
+     * hardware being present.
+     */
+    readonly property var privacyStops: {
+        const colors = []
+        if (App.privacy.microphoneActive) colors.push("#ff9f0a")
+        if (App.privacy.cameraActive) colors.push("#ff453a")
+        if (App.privacy.shareActive) colors.push("#bf5af2")
+        // One active kind is a solid dot, two a plain fade; repeating the
+        // last colour into the free stops keeps every stop defined either way.
+        while (colors.length > 0 && colors.length < 3) {
+            colors.push(colors[colors.length - 1])
+        }
+        return colors
+    }
     /**
      * A job the user sent away is still theirs, so the pill keeps a face on it.
      * This is the whole of "continue in background": no window, no taskbar
@@ -116,6 +137,21 @@ Item {
             font.family: Theme.fontFamily
             font.pixelSize: Theme.size(9)
             elide: Text.ElideRight
+        }
+
+        Rectangle {
+            visible: view.showPrivacy && view.privacyStops.length > 0
+            anchors.verticalCenter: parent.verticalCenter
+            width: 10
+            height: 10
+            radius: width / 2
+
+            gradient: Gradient {
+                orientation: Gradient.Vertical
+                GradientStop { position: 0.0; color: view.privacyStops[0] ?? "transparent" }
+                GradientStop { position: 0.55; color: view.privacyStops[1] ?? "transparent" }
+                GradientStop { position: 1.0; color: view.privacyStops[2] ?? "transparent" }
+            }
         }
 
         Rectangle {

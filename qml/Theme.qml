@@ -54,6 +54,16 @@ QtObject {
     readonly property color critical: "#ff5f57"
     readonly property color positive: "#32d74b"
 
+    /**
+     * A wash of the foreground at some alpha. Cards, hovers and scroll bars
+     * are painted with this instead of fixed white, so they stay visible over
+     * whatever background is configured - white washes on a dark island,
+     * dark ones on a light.
+     */
+    function tint(alpha) {
+        return Qt.rgba(foreground.r, foreground.g, foreground.b, alpha)
+    }
+
     readonly property string fontFamily: (Cfg.appearance.fontFamily ?? "") || Qt.application.font.family
     readonly property real fontScale: Cfg.appearance.fontScale ?? 1.0
 

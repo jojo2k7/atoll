@@ -20,10 +20,12 @@
 #include "ipc/ipcservice.h"
 #include "media/lyricsservice.h"
 #include "share/shareservice.h"
+#include "system/appactivator.h"
 #include "system/battery.h"
 #include "system/bluetooth.h"
 #include "system/clock.h"
 #include "system/lockmonitor.h"
+#include "system/privacymonitor.h"
 #include "system/visualizer.h"
 
 class DBusMonitor;
@@ -57,6 +59,7 @@ class Application : public QObject
     Q_PROPERTY(AiService *ai READ ai CONSTANT)
     Q_PROPERTY(IpcService *ipc READ ipc CONSTANT)
     Q_PROPERTY(CalendarService *calendar READ calendar CONSTANT)
+    Q_PROPERTY(PrivacyMonitor *privacy READ privacy CONSTANT)
 
     Q_PROPERTY(QString version READ version CONSTANT)
     /** ATOLL_DEBUG_SURFACE=1 paints the whole layer surface, to see its bounds. */
@@ -146,6 +149,10 @@ public:
     {
         return m_calendar;
     }
+    PrivacyMonitor *privacy() const
+    {
+        return m_privacy;
+    }
 
     QString version() const;
     QString settingsPage() const;
@@ -163,8 +170,6 @@ public:
     /** Nudge the default sink and echo the result through the island's OSD. */
     Q_INVOKABLE void adjustVolume(int deltaPercent);
     Q_INVOKABLE void toggleMute();
-    /** Launch a desktop entry (used when a notification is clicked). */
-    Q_INVOKABLE void activateApp(const QString &desktopEntry);
     Q_INVOKABLE void openUrl(const QString &url);
     /** Put text on the clipboard, for the settings window's copy buttons. */
     Q_INVOKABLE void copyText(const QString &text);
@@ -203,6 +208,8 @@ private:
     ShareService *m_share = nullptr;
     AiService *m_ai = nullptr;
     CalendarService *m_calendar = nullptr;
+    AppActivator *m_activator = nullptr;
+    PrivacyMonitor *m_privacy = nullptr;
 
     bool m_busTapActive = false;
     QString m_busError;

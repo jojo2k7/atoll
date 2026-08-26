@@ -71,7 +71,8 @@ Application::Application(QObject *parent)
     m_shell = new ShellWindow(m_config, this);
     m_osd = new OsdMonitor(m_config, this);
     m_notificationMonitor = new NotificationMonitor(m_config, this);
-    m_notifications = new NotificationModel(m_config, this);
+    m_activator = new AppActivator(this);
+    m_notifications = new NotificationModel(m_config, m_activator, this);
     m_media = new MprisManager(m_config, this);
     m_battery = new Battery(this);
     m_bluetooth = new BluetoothService(this);
@@ -83,6 +84,7 @@ Application::Application(QObject *parent)
     m_share = new ShareService(m_config, this);
     m_ai = new AiService(m_config, this);
     m_calendar = new CalendarService(m_config, this);
+    m_privacy = new PrivacyMonitor(m_config, this);
 
     connect(m_notificationMonitor, &NotificationMonitor::posted, m_notifications, &NotificationModel::onPosted);
     connect(m_notificationMonitor, &NotificationMonitor::idAssigned, m_notifications, &NotificationModel::onIdAssigned);
@@ -259,24 +261,6 @@ void Application::reportVolume()
                             muted ? tr("Muted") : tr("Volume"));
     });
     process->start(wpctl, {u"get-volume"_s, u"@DEFAULT_AUDIO_SINK@"_s});
-}
-
-void Application::activateApp(const QString &desktopEntry)
-{
-    if (desktopEntry.isEmpty()) {
-        return;
-    }
-    const QString entry = desktopEntry.endsWith(u".desktop"_s) ? desktopEntry : desktopEntry + u".desktop"_s;
-
-    const QString kstart = QStandardPaths::findExecutable(u"kstart"_s);
-    if (!kstart.isEmpty()) {
-        QProcess::startDetached(kstart, {entry});
-        return;
-    }
-    const QString gtkLaunch = QStandardPaths::findExecutable(u"gtk-launch"_s);
-    if (!gtkLaunch.isEmpty()) {
-        QProcess::startDetached(gtkLaunch, {entry});
-    }
 }
 
 void Application::openUrl(const QString &url)

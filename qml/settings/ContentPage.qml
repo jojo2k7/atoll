@@ -133,6 +133,12 @@ SettingsPage {
             defaultValue: true
         }
         BoolSetting {
+            label: qsTr("Wi-Fi")
+            description: qsTr("Radio power and network connections, managed from the dashboard.")
+            key: "modules.wifi"
+            defaultValue: true
+        }
+        BoolSetting {
             label: qsTr("Privacy indicators")
             description: qsTr("Watches PipeWire for camera, microphone and screen capture. Without it the dots never light.")
             key: "modules.privacy"
@@ -145,6 +151,15 @@ SettingsPage {
             key: "bluetooth.showInExpanded"
             defaultValue: false
             enabled: Cfg.get("modules.bluetooth", true)
+            opacity: enabled ? 1 : 0.45
+        }
+
+        BoolSetting {
+            label: qsTr("Wi-Fi network panel")
+            description: qsTr("Adds a collapsible panel of nearby networks to the dashboard; click its header to fold or unfold it.")
+            key: "wifi.showInExpanded"
+            defaultValue: false
+            enabled: Cfg.get("modules.wifi", true)
             opacity: enabled ? 1 : 0.45
         }
 

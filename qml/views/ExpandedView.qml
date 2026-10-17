@@ -30,8 +30,12 @@ Item {
     signal collapseRequested()
 
     // The view is built fresh each time the island opens, which makes it the
-    // natural moment to catch up on whatever BlueZ has been doing.
-    Component.onCompleted: App.bluetooth.refresh()
+    // natural moment to catch up on whatever BlueZ and NetworkManager have
+    // been doing.
+    Component.onCompleted: {
+        App.bluetooth.refresh()
+        App.wifi.refresh()
+    }
 
     implicitWidth: Cfg.expandedWidth
     /**
@@ -585,6 +589,16 @@ Item {
                 }
 
                 QuickToggle {
+                    visible: (Cfg.modules.wifi ?? true) && App.wifi.present
+                    icon: [App.wifi.powered ? "network-wireless" : "network-wireless-0",
+                           "network-wireless"]
+                    label: qsTr("Wi-Fi")
+                    checked: App.wifi.powered
+                    opacity: App.wifi.powered || App.wifi.connected ? 1 : 0.55
+                    onToggled: App.wifi.setPowered(!App.wifi.powered)
+                }
+
+                QuickToggle {
                     visible: Cfg.modules.lyrics ?? true
                     icon: ["view-media-lyrics", "view-media-track"]
                     label: qsTr("Lyrics")
@@ -789,6 +803,220 @@ Item {
                         visible: bluetoothCard.open && App.bluetooth.devices.length === 0
                         text: App.bluetooth.powered ? qsTr("No paired devices nearby")
                                                     : qsTr("Bluetooth is off")
+                        color: Theme.muted
+                        font.family: Theme.fontFamily
+                        font.pixelSize: Theme.size(10)
+                    }
+                }
+            }
+
+            // ---- wifi ----------------------------------------------------------
+            // Same shape as the bluetooth panel: opt-in from the settings and
+            // folded even then, one header line until it is clicked. Opening it
+            // is also the moment a fresh scan goes out, so the strengths and
+            // the neighbourhood are never staler than the click.
+            Rectangle {
+                id: wifiCard
+
+                property bool open: false
+
+                readonly property bool available: (Cfg.modules.wifi ?? true) && App.wifi.present
+                                                  && Cfg.get("wifi.showInExpanded", false)
+                                                  && (App.wifi.powered || App.wifi.connected)
+                visible: !view.showingCalendar && available
+                width: parent.width
+                height: visible ? wifiBody.implicitHeight + 20 : 0
+                radius: 16
+                color: Theme.tint(0.06)
+
+                Column {
+                    id: wifiBody
+                    anchors.fill: parent
+                    anchors.margins: 10
+                    spacing: 4
+
+                    Item {
+                        id: wifiHeader
+                        width: parent.width
+                        height: 26
+
+                        Rectangle {
+                            anchors.fill: parent
+                            radius: 8
+                            color: Theme.tint(wifiHeadArea.containsMouse ? 0.06 : 0.0)
+
+                            Behavior on color {
+                                ColorAnimation { duration: Theme.fast }
+                            }
+                        }
+
+                        Row {
+                            anchors.left: parent.left
+                            anchors.leftMargin: 2
+                            anchors.verticalCenter: parent.verticalCenter
+                            spacing: 7
+
+                            IconImage {
+                                anchors.verticalCenter: parent.verticalCenter
+                                width: 15
+                                height: 15
+                                names: [App.wifi.powered ? "network-wireless" : "network-wireless-0",
+                                        "network-wireless"]
+                            }
+
+                            Text {
+                                anchors.verticalCenter: parent.verticalCenter
+                                text: qsTr("Wi-Fi")
+                                color: Theme.foreground
+                                font.family: Theme.fontFamily
+                                font.pixelSize: Theme.size(11)
+                                font.weight: Font.DemiBold
+                            }
+                        }
+
+                        Row {
+                            anchors.right: parent.right
+                            anchors.rightMargin: 2
+                            anchors.verticalCenter: parent.verticalCenter
+                            spacing: 6
+
+                            Text {
+                                anchors.verticalCenter: parent.verticalCenter
+                                text: !App.wifi.powered
+                                      ? qsTr("Off")
+                                      : App.wifi.connected
+                                        ? App.wifi.activeSsid
+                                        : qsTr("%1 networks").arg(App.wifi.networks.length)
+                                color: Theme.muted
+                                font.family: Theme.fontFamily
+                                font.pixelSize: Theme.size(9)
+                                elide: Text.ElideRight
+                                width: Math.min(implicitWidth, 120)
+                            }
+
+                            IconImage {
+                                anchors.verticalCenter: parent.verticalCenter
+                                width: 12
+                                height: 12
+                                names: wifiCard.open ? ["arrow-up", "go-up"]
+                                                     : ["arrow-down", "go-down"]
+                            }
+                        }
+
+                        // A MouseArea rather than a TapHandler, for the same
+                        // reason as the bluetooth header: the island's own tap
+                        // handler must not also see the click and fold away.
+                        MouseArea {
+                            id: wifiHeadArea
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: {
+                                wifiCard.open = !wifiCard.open
+                                if (wifiCard.open) {
+                                    App.wifi.refresh()
+                                }
+                            }
+                        }
+                    }
+
+                    Repeater {
+                        model: wifiCard.open ? App.wifi.networks : []
+
+                        delegate: Item {
+                            id: networkRow
+                            required property var modelData
+
+                            readonly property bool connected: modelData.connected ?? false
+                            readonly property bool busy: modelData.busy ?? false
+                            readonly property bool secure: modelData.secure ?? false
+                            readonly property int strength: modelData.strength ?? 0
+
+                            width: parent.width
+                            height: 28
+
+                            Rectangle {
+                                anchors.fill: parent
+                                radius: 8
+                                color: Theme.tint(netArea.containsMouse ? 0.07 : 0.03)
+                            }
+
+                            IconImage {
+                                id: netIcon
+                                anchors.left: parent.left
+                                anchors.leftMargin: 6
+                                anchors.verticalCenter: parent.verticalCenter
+                                width: 15
+                                height: 15
+                                names: {
+                                    const lvl = networkRow.strength >= 80 ? "100"
+                                                : networkRow.strength >= 60 ? "80"
+                                                : networkRow.strength >= 40 ? "60"
+                                                : networkRow.strength >= 20 ? "40"
+                                                : networkRow.strength >= 10 ? "20" : "0"
+                                    const base = "network-wireless-" + lvl
+                                    return [networkRow.secure ? base + "-locked" : base,
+                                            base, "network-wireless"]
+                                }
+                                opacity: networkRow.busy && !networkRow.connected ? 0.5 : 1
+                            }
+
+                            Text {
+                                anchors.left: netIcon.right
+                                anchors.leftMargin: 8
+                                anchors.right: netStatus.left
+                                anchors.rightMargin: 8
+                                anchors.verticalCenter: parent.verticalCenter
+                                text: networkRow.modelData.ssid
+                                color: Theme.foreground
+                                font.family: Theme.fontFamily
+                                font.pixelSize: Theme.size(10)
+                                font.weight: Font.Medium
+                                elide: Text.ElideRight
+                                maximumLineCount: 1
+                            }
+
+                            Text {
+                                id: netStatus
+                                anchors.right: parent.right
+                                anchors.rightMargin: 6
+                                anchors.verticalCenter: parent.verticalCenter
+                                text: {
+                                    if (networkRow.busy) {
+                                        return networkRow.modelData.busyConnect
+                                               ? qsTr("Connecting…") : qsTr("Disconnecting…")
+                                    }
+                                    if (networkRow.connected) return qsTr("Connected")
+                                    if (networkRow.secure) return qsTr("Secured")
+                                    return qsTr("Open")
+                                }
+                                color: networkRow.busy ? Theme.accent
+                                                      : (networkRow.connected ? Theme.positive : Theme.muted)
+                                font.family: Theme.fontFamily
+                                font.pixelSize: Theme.size(9)
+                            }
+
+                            MouseArea {
+                                id: netArea
+                                anchors.fill: parent
+                                hoverEnabled: true
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: {
+                                    if (networkRow.connected) {
+                                        App.wifi.disconnectNetwork()
+                                    } else {
+                                        App.wifi.connectNetwork(networkRow.modelData.path)
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    Text {
+                        leftPadding: 6
+                        visible: wifiCard.open && App.wifi.networks.length === 0
+                        text: App.wifi.powered ? qsTr("No networks nearby")
+                                               : qsTr("Wi-Fi is off")
                         color: Theme.muted
                         font.family: Theme.fontFamily
                         font.pixelSize: Theme.size(10)

@@ -89,6 +89,7 @@ QVariantMap Config::defaults()
     "media": true,
     "battery": true,
     "bluetooth": true,
+    "wifi": true,
     "visualizer": true,
     "clock": true,
     "lyrics": true,
@@ -144,6 +145,9 @@ QVariantMap Config::defaults()
     "multicast": "224.0.0.167"
   },
   "bluetooth": {
+    "showInExpanded": false
+  },
+  "wifi": {
     "showInExpanded": false
   },
   "ai": {

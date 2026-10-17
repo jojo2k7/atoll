@@ -27,6 +27,7 @@
 #include "system/lockmonitor.h"
 #include "system/privacymonitor.h"
 #include "system/visualizer.h"
+#include "system/wifi.h"
 
 class DBusMonitor;
 class NotificationMonitor;
@@ -51,6 +52,7 @@ class Application : public QObject
     Q_PROPERTY(MprisManager *media READ media CONSTANT)
     Q_PROPERTY(Battery *battery READ battery CONSTANT)
     Q_PROPERTY(BluetoothService *bluetooth READ bluetooth CONSTANT)
+    Q_PROPERTY(WifiService *wifi READ wifi CONSTANT)
     Q_PROPERTY(Clock *clock READ clock CONSTANT)
     Q_PROPERTY(Visualizer *visualizer READ visualizer CONSTANT)
     Q_PROPERTY(LyricsService *lyrics READ lyrics CONSTANT)
@@ -116,6 +118,10 @@ public:
     BluetoothService *bluetooth() const
     {
         return m_bluetooth;
+    }
+    WifiService *wifi() const
+    {
+        return m_wifi;
     }
     Clock *clock() const
     {
@@ -200,6 +206,7 @@ private:
     MprisManager *m_media = nullptr;
     Battery *m_battery = nullptr;
     BluetoothService *m_bluetooth = nullptr;
+    WifiService *m_wifi = nullptr;
     Clock *m_clock = nullptr;
     Visualizer *m_visualizer = nullptr;
     LyricsService *m_lyrics = nullptr;

@@ -121,6 +121,10 @@ Item {
             font.weight: Font.Medium
         }
 
+        WeatherWidget {
+            anchors.verticalCenter: parent.verticalCenter
+        }
+
         Text {
             visible: view.showCalendarHint
             anchors.verticalCenter: parent.verticalCenter

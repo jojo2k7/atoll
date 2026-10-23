@@ -8,6 +8,11 @@
 
 #include <QCoreApplication>
 #include <QDBusConnection>
+#include <QDBusConnectionInterface>
+#include <QDBusMessage>
+#include <QDir>
+#include <QFile>
+#include <QStandardPaths>
 #include <QUuid>
 
 using namespace Qt::StringLiterals;
@@ -23,9 +28,13 @@ bool IpcService::registerOnBus()
     if (!bus.registerService(u"org.atoll.Atoll"_s)) {
         return false;
     }
-    return bus.registerObject(u"/Atoll"_s,
-                              this,
-                              QDBusConnection::ExportScriptableSlots | QDBusConnection::ExportScriptableSignals);
+    const bool ok = bus.registerObject(u"/Atoll"_s,
+                                       this,
+                                       QDBusConnection::ExportScriptableSlots | QDBusConnection::ExportScriptableSignals);
+    if (ok) {
+        ensureKWinScriptLoaded();
+    }
+    return ok;
 }
 
 bool IpcService::registerSettingsOnBus()
@@ -37,6 +46,15 @@ bool IpcService::registerSettingsOnBus()
     return bus.registerObject(u"/Settings"_s,
                               this,
                               QDBusConnection::ExportScriptableSlots | QDBusConnection::ExportScriptableSignals);
+}
+
+void IpcService::setWindowActive(bool active)
+{
+    if (m_windowActive == active) {
+        return;
+    }
+    m_windowActive = active;
+    Q_EMIT windowActiveChanged(m_windowActive);
 }
 
 void IpcService::expand()
@@ -187,3 +205,116 @@ void IpcService::quit()
 {
     QCoreApplication::quit();
 }
+
+void IpcService::ensureKWinScriptLoaded()
+{
+    auto bus = QDBusConnection::sessionBus();
+    if (!bus.isConnected() || !bus.interface() || !bus.interface()->isServiceRegistered(u"org.kde.KWin"_s)) {
+        return;
+    }
+
+    // Check if KWin already has the script loaded
+    QDBusMessage checkMsg = QDBusMessage::createMethodCall(
+        u"org.kde.KWin"_s,
+        u"/Scripting"_s,
+        u"org.kde.kwin.Scripting"_s,
+        u"isScriptLoaded"_s);
+    checkMsg << u"atoll-dodge"_s;
+    const QDBusMessage checkReply = bus.call(checkMsg);
+    if (checkReply.type() == QDBusMessage::ReplyMessage && !checkReply.arguments().isEmpty()
+        && checkReply.arguments().constFirst().toBool()) {
+        return;
+    }
+
+    // Search for script file
+    QString scriptPath;
+    const QStringList candidates = {
+        QDir::homePath() + u"/.local/share/kwin/scripts/atoll-dodge/contents/code/main.js"_s,
+        QStandardPaths::locate(QStandardPaths::GenericDataLocation, u"kwin/scripts/atoll-dodge/contents/code/main.js"_s),
+        u"/usr/share/kwin/scripts/atoll-dodge/contents/code/main.js"_s,
+        QCoreApplication::applicationDirPath() + u"/../data/kwin/scripts/atoll-dodge/contents/code/main.js"_s,
+        QCoreApplication::applicationDirPath() + u"/data/kwin/scripts/atoll-dodge/contents/code/main.js"_s
+    };
+
+    for (const auto &candidate : candidates) {
+        if (!candidate.isEmpty() && QFile::exists(candidate)) {
+            scriptPath = candidate;
+            break;
+        }
+    }
+
+    // If not found, deploy to ~/.local/share/kwin/scripts/atoll-dodge automatically
+    if (scriptPath.isEmpty()) {
+        const QString targetDir = QDir::homePath() + u"/.local/share/kwin/scripts/atoll-dodge"_s;
+        QDir().mkpath(targetDir + u"/contents/code"_s);
+
+        QFile codeFile(targetDir + u"/contents/code/main.js"_s);
+        if (codeFile.open(QIODevice::WriteOnly | QIODevice::Text)) {
+            static const char kCode[] =
+                "function isAppActive() {\n"
+                "    var win = workspace.activeWindow;\n"
+                "    if (!win) return false;\n"
+                "    if (win.desktopWindow || win.dock) return false;\n"
+                "    var cls = (win.resourceClass || \"\").toLowerCase();\n"
+                "    if (cls.indexOf(\"plasmashell\") !== -1 || cls.indexOf(\"plasma\") !== -1) return false;\n"
+                "    if (cls.indexOf(\"spectacle\") !== -1 || cls.indexOf(\"atoll\") !== -1) return false;\n"
+                "    if (win.minimized || win.hidden || win.hiddenByShowDesktop) return false;\n"
+                "    return win.normalWindow === true || win.dialog === true;\n"
+                "}\n\n"
+                "function updateActive() {\n"
+                "    var active = isAppActive();\n"
+                "    callDBus(\"org.atoll.Atoll\", \"/Atoll\", \"org.atoll.Atoll\", \"setWindowActive\", active);\n"
+                "}\n\n"
+                "workspace.windowActivated.connect(updateActive);\n"
+                "workspace.windowRemoved.connect(updateActive);\n"
+                "if (workspace.currentDesktopChanged) {\n"
+                "    workspace.currentDesktopChanged.connect(updateActive);\n"
+                "}\n\n"
+                "var timer = new QTimer();\n"
+                "timer.interval = 300;\n"
+                "timer.timeout.connect(updateActive);\n"
+                "timer.start();\n\n"
+                "updateActive();\n";
+            codeFile.write(kCode);
+            codeFile.close();
+            scriptPath = codeFile.fileName();
+        }
+
+        QFile metaFile(targetDir + u"/metadata.json"_s);
+        if (metaFile.open(QIODevice::WriteOnly | QIODevice::Text)) {
+            static const char kMeta[] =
+                "{\n"
+                "    \"KPackageStructure\": \"KWin/Script\",\n"
+                "    \"KPlugin\": {\n"
+                "        \"Id\": \"atoll-dodge\",\n"
+                "        \"Name\": \"Atoll Dodge Helper\",\n"
+                "        \"Description\": \"Notifies Atoll when an app window is active\",\n"
+                "        \"Icon\": \"preferences-system-windows\",\n"
+                "        \"Version\": \"1.0\"\n"
+                "    },\n"
+                "    \"X-Plasma-API\": \"javascript\"\n"
+                "}\n";
+            metaFile.write(kMeta);
+            metaFile.close();
+        }
+    }
+
+    if (!scriptPath.isEmpty()) {
+        QDBusMessage loadMsg = QDBusMessage::createMethodCall(
+            u"org.kde.KWin"_s,
+            u"/Scripting"_s,
+            u"org.kde.kwin.Scripting"_s,
+            u"loadScript"_s);
+        loadMsg << scriptPath << u"atoll-dodge"_s;
+        const QDBusMessage loadReply = bus.call(loadMsg);
+        if (loadReply.type() == QDBusMessage::ReplyMessage) {
+            QDBusMessage startMsg = QDBusMessage::createMethodCall(
+                u"org.kde.KWin"_s,
+                u"/Scripting"_s,
+                u"org.kde.kwin.Scripting"_s,
+                u"start"_s);
+            bus.call(startMsg);
+        }
+    }
+}
+

@@ -23,6 +23,18 @@ SettingsPage {
             ]
         }
 
+        ChoiceSetting {
+            label: qsTr("Window visibility")
+            description: qsTr("Dodge window keeps Atoll on desktop and hides inside apps. Auto-hide hides everywhere when idle.")
+            key: "island.hideMode"
+            defaultValue: "dodge"
+            options: [
+                { value: "none", label: qsTr("Always visible") },
+                { value: "dodge", label: qsTr("Dodge window") },
+                { value: "autohide", label: qsTr("Auto-hide") }
+            ]
+        }
+
         BoolSetting {
             label: qsTr("Always show something")
             description: qsTr("Keeps the island on screen even in \"hidden\" mode, so there is always somewhere to click.")

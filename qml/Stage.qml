@@ -42,7 +42,11 @@ Item {
 
     GooLayer {
         anchors.fill: parent
-        visible: Theme.shadow
+        visible: Theme.shadow && opacity > 0.01
+        opacity: stage.dodgeActive ? 0.0 : 1.0
+        Behavior on opacity {
+            NumberAnimation { duration: 180 }
+        }
         shadowMode: true
         shadowOpacity: Theme.shadowOpacity
         mainGeometry: island.mainGeometry
@@ -55,6 +59,11 @@ Item {
 
     GooLayer {
         anchors.fill: parent
+        visible: opacity > 0.01
+        opacity: stage.dodgeActive ? 0.0 : 1.0
+        Behavior on opacity {
+            NumberAnimation { duration: 180 }
+        }
         fill: Theme.background
         gooey: Cfg.gooey
         // More strength means a wider halo, so bodies fuse from further apart.
@@ -67,11 +76,76 @@ Item {
         satelliteRadius: -1
     }
 
+    // ---- Dodge / Auto-hide logic ------------------------------------------
+    // hideMode: "none" (always visible), "dodge" (dodge app windows), "autohide" (auto-hide when idle)
+    readonly property string hideMode: Cfg.get("island.hideMode", (Cfg.get("island.dodgeWindow", true) ? "dodge" : "none"))
+
+    Timer {
+        id: dodgeLinger
+        interval: 1200
+        repeat: false
+    }
+
+    readonly property bool userInteracting: island.hovered || edgeHover.hovered || island.expanded
+    onUserInteractingChanged: {
+        if (!userInteracting) {
+            dodgeLinger.restart()
+        } else {
+            dodgeLinger.stop()
+        }
+    }
+
+    readonly property bool dodgeActive: {
+        if (island.mode !== "idle" || userInteracting || dodgeLinger.running) {
+            return false
+        }
+        if (hideMode === "autohide") {
+            return true
+        }
+        if (hideMode === "dodge") {
+            return App.ipc.windowActive
+        }
+        return false
+    }
+
+    Item {
+        id: edgeTrigger
+        anchors.top: stage.atBottom ? undefined : parent.top
+        anchors.bottom: stage.atBottom ? parent.bottom : undefined
+        x: Math.max(0, stage.islandX - 60)
+        width: Math.max(280, stage.totalWidth + 120)
+        height: 8
+        z: 999
+
+        HoverHandler {
+            id: edgeHover
+        }
+    }
+
     Island {
         id: island
         targetWindow: stage.targetWindow
         x: stage.islandX
-        y: stage.atBottom ? Math.max(0, stage.height - height) : 0
+        y: {
+            if (stage.atBottom) {
+                return stage.dodgeActive ? (stage.height + 120) : Math.max(0, stage.height - height)
+            } else {
+                return stage.dodgeActive ? (-height - 120) : 0
+            }
+        }
+        opacity: stage.dodgeActive ? 0.0 : 1.0
+
+        Behavior on y {
+            SpringAnimation {
+                spring: Cfg.spring
+                damping: Cfg.damping
+                mass: 1.0
+                epsilon: 0.25
+            }
+        }
+        Behavior on opacity {
+            NumberAnimation { duration: 180 }
+        }
     }
 
     // The dashboard can be taller than the configured canvas, especially with
@@ -92,18 +166,15 @@ Item {
 
         function regions() {
             const rects = []
-            if (island.width > 1 && island.height > 1) {
-                rects.push(Qt.rect(island.x, island.y, island.width, island.height))
+            if (island.width > 1 && island.height > 1 && island.y > -island.height + 4) {
+                rects.push(Qt.rect(island.x, Math.max(0, island.y), island.width, island.height))
             }
-            if (island.satelliteSize > 1) {
+            if (island.satelliteSize > 1 && island.y > -island.height + 4) {
                 const s = island.satelliteGeometry
-                rects.push(Qt.rect(island.x + s.x, island.y + s.y, s.width, s.height))
+                rects.push(Qt.rect(island.x + s.x, Math.max(0, island.y + s.y), s.width, s.height))
             }
-            if (rects.length === 0 && (Cfg.behavior.hoverPeek ?? true)) {
-                // A hidden island still needs somewhere to be woken up from.
-                const centre = stage.islandX + island.width / 2
-                rects.push(Qt.rect(centre - 30, stage.atBottom ? stage.height - 3 : 0, 60, 3))
-            }
+            // Always keep edge trigger in input region so pointer tracking never gets stuck
+            rects.push(Qt.rect(edgeTrigger.x, stage.atBottom ? stage.height - edgeTrigger.height : 0, edgeTrigger.width, edgeTrigger.height))
             return rects
         }
 

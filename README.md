@@ -66,6 +66,12 @@ and it does not replace Plasma's OSD:
   `https://` address Google Calendar, iCloud, Nextcloud and Outlook all hand
   out. Atoll reads them on a timer, expands repeating events itself, and never
   writes anything back.
+- **Bluetooth and Wi-Fi** go through BlueZ and NetworkManager on the system
+  bus, the same programs Plasma's own applets use. Atoll turns the radios on
+  and off, lists nearby devices and networks, and joins what you click. It
+  never handles a Wi-Fi password itself: a network it has not joined before
+  asks through your desktop's own dialog, and the key ends up stored by
+  NetworkManager, exactly as if you had joined it there.
 - **Nearby devices** are found over the LocalSend protocol: a multicast group
   everyone announces themselves into, and a small HTTP server for the files
   themselves. See [Sharing files](#sharing-files).
@@ -144,6 +150,21 @@ notifications you have not dealt with, then a row of toggles.
 Which transport buttons are there is yours to choose under **Settings → Media**:
 shuffle, previous, play/pause, next and repeat, in that order, with the classic
 three shown when you have never said otherwise (`media.transportButtons`).
+
+### Wi-Fi and Bluetooth
+
+The toggle row carries the connectivity controls. Bluetooth turns the radio on
+or off and lists paired devices when its panel is on. Wi-Fi works the same way
+- the toggle is the radio - and with the Wi-Fi network panel enabled under
+**Settings → Content** the dashboard also carries a collapsible list of nearby
+networks with their signal strength.
+
+Click a network to join it. One you have joined before reconnects without
+being asked for its password; a new secured one asks through your desktop's
+own dialog, so Atoll never handles the key itself - NetworkManager stores it
+the same way it does for every other wifi menu. Click the network you are
+connected to and it disconnects, and stays disconnected until you choose to
+join again.
 
 ### Calendar
 
@@ -477,6 +498,8 @@ while you watch. Keys you are most likely to want:
 | `notifications.openOnClick` | Whether clicking a notification raises or starts the app that sent it. |
 | `modules.privacy` | The camera, microphone and screen-share dots on the resting island. |
 | `modules.bluetooth` | Bluetooth power and device connections in the dashboard. |
+| `modules.wifi` | Wi-Fi power and network connections in the dashboard. |
+| `wifi.showInExpanded` | The collapsible list of nearby networks in the dashboard. |
 | `idle.*` | What the resting pill shows: clock, day and date, cover, dots, next event, privacy indicators. |
 | `media.preferred` | Player names to favour, in order. |
 | `lyrics.enabled` | Whether to look lyrics up at all. |
@@ -564,6 +587,18 @@ do not.
 - Lyrics are only as good as the database. Anything lrclib has never seen shows
   as "No lyrics for this track"; an `.lrc` file next to a local track always
   wins.
+
+## Recent changes
+
+- **Wi-Fi control.** The dashboard's toggle row now carries a Wi-Fi switch and,
+  with *Wi-Fi network panel* on under **Settings → Content**, a collapsible list
+  of nearby networks: click one to join it, click the connected one to leave it.
+  Saved networks reconnect without a password; new secured ones ask through your
+  desktop's own dialog. See [Wi-Fi and Bluetooth](#wi-fi-and-bluetooth).
+- **A crash on exit is fixed.** Closing the settings window used to crash the
+  island with a segmentation fault, because the lock-screen overlay was torn
+  down after Qt had already closed the Wayland connection it belonged to. The
+  release now happens while the connection is still alive.
 
 ## License
 

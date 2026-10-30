@@ -101,6 +101,7 @@ qt_add_executable(atoll
     src/system/appactivator.cpp       src/system/appactivator.h
     src/system/battery.cpp         src/system/battery.h
     src/system/bluetooth.cpp       src/system/bluetooth.h
+    src/system/wifi.cpp           src/system/wifi.h
     src/system/clock.cpp           src/system/clock.h
     src/system/lockmonitor.cpp     src/system/lockmonitor.h
     src/system/privacymonitor.cpp  src/system/privacymonitor.h

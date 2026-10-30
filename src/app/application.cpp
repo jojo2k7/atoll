@@ -22,6 +22,7 @@
 #include "system/clock.h"
 #include "system/lockmonitor.h"
 #include "system/visualizer.h"
+#include "system/wifi.h"
 
 #include <QClipboard>
 #include <QCoreApplication>
@@ -76,6 +77,7 @@ Application::Application(QObject *parent)
     m_media = new MprisManager(m_config, this);
     m_battery = new Battery(this);
     m_bluetooth = new BluetoothService(this);
+    m_wifi = new WifiService(this);
     m_clock = new Clock(m_config, this);
     m_visualizer = new Visualizer(m_config, this);
     m_lyrics = new LyricsService(m_config, m_media, this);

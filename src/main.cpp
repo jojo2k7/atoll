@@ -8,6 +8,8 @@
 #include "app/application.h"
 #include "app/imagestore.h"
 #include "ipc/ipcservice.h"
+#include "office/claudeask.h"
+#include "office/claudehook.h"
 
 #include <LayerShellQt/Shell>
 
@@ -97,10 +99,51 @@ bool wantsPermissionHook(int argc, char *argv[])
     }
     return false;
 }
+
+/**
+ * The office hook runs once per Claude Code event, the same way the
+ * permission gate runs once per tool call: it has to start, forward and
+ * exit without ever touching the display, so the flag is read before any
+ * application object exists.
+ */
+bool wantsClaudeHook(int argc, char *argv[])
+{
+    for (int i = 1; i < argc; ++i) {
+        if (qstrcmp(argv[i], "--claude-hook") == 0) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/**
+ * The synchronous twin of the office hook above, for AskUserQuestion: it has
+ * to answer on standard output rather than just forward and exit, but it is
+ * just as display-free and has to be decided just as early.
+ */
+bool wantsClaudeAsk(int argc, char *argv[])
+{
+    for (int i = 1; i < argc; ++i) {
+        if (qstrcmp(argv[i], "--claude-ask") == 0) {
+            return true;
+        }
+    }
+    return false;
+}
 }
 
 int main(int argc, char *argv[])
 {
+    if (wantsClaudeHook(argc, argv)) {
+        QCoreApplication hook(argc, argv);
+        return runClaudeHook();
+    }
+
+    if (wantsClaudeAsk(argc, argv)) {
+        QCoreApplication hook(argc, argv);
+        return runClaudeAsk();
+    }
+
     if (wantsPermissionHook(argc, argv)) {
         QCoreApplication hook(argc, argv);
         return runPermissionHook();
@@ -144,6 +187,7 @@ int main(int argc, char *argv[])
     const QCommandLineOption expandOption(u"expand"_s, u"Expand the running island and exit."_s);
     const QCommandLineOption collapseOption(u"collapse"_s, u"Collapse the running island and exit."_s);
     const QCommandLineOption dismissOption(u"dismiss"_s, u"Dismiss whatever the island is showing."_s);
+    const QCommandLineOption officeOption(u"office"_s, u"Toggle the Claude Code office."_s);
     const QCommandLineOption quitOption(u"quit"_s, u"Ask the running island to exit."_s);
     const QCommandLineOption settingsOption(u"settings"_s, u"Open the settings window."_s);
     const QCommandLineOption askOption(u"ask"_s,
@@ -153,14 +197,26 @@ int main(int argc, char *argv[])
         u"permission-hook"_s,
         u"Ask the running island to judge one tool call. Read on standard input, answered on "
         "standard output; the assistant starts this itself."_s);
+    const QCommandLineOption claudeHookOption(
+        u"claude-hook"_s,
+        u"Feed one Claude Code hook event to the office. Read on standard input, nothing printed, "
+        "always exits 0; Claude Code's hooks start this themselves."_s);
+    const QCommandLineOption claudeAskOption(
+        u"claude-ask"_s,
+        u"Answer one Claude Code AskUserQuestion through the office, synchronously. Read on "
+        "standard input, the answer (or nothing) printed on standard output; Claude Code's "
+        "hooks start this themselves."_s);
     parser.addOption(toggleOption);
     parser.addOption(expandOption);
     parser.addOption(collapseOption);
     parser.addOption(dismissOption);
+    parser.addOption(officeOption);
     parser.addOption(quitOption);
     parser.addOption(settingsOption);
     parser.addOption(askOption);
     parser.addOption(hookOption);
+    parser.addOption(claudeHookOption);
+    parser.addOption(claudeAskOption);
     parser.process(app);
 
     if (!settingsMode && parser.isSet(askOption)) {
@@ -176,6 +232,7 @@ int main(int argc, char *argv[])
                                              std::pair{expandOption, u"expand"_s},
                                              std::pair{collapseOption, u"collapse"_s},
                                              std::pair{dismissOption, u"dismiss"_s},
+                                             std::pair{officeOption, u"office"_s},
                                              std::pair{quitOption, u"quit"_s}}) {
             if (parser.isSet(option)) {
                 if (sendTo(u"org.atoll.Atoll"_s, u"/Atoll"_s, method)) {

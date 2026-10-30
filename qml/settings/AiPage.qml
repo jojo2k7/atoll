@@ -322,15 +322,6 @@ SettingsPage {
             defaultValue: true
         }
 
-        NumberSetting {
-            label: qsTr("Hold the island for")
-            description: qsTr("Milliseconds before a press counts as opening the assistant.")
-            key: "ai.longPressMs"
-            defaultValue: 450
-            from: 150
-            to: 1500
-            step: 50
-        }
 
         NumberSetting {
             label: qsTr("Panel width")

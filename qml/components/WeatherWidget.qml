@@ -3,27 +3,50 @@
 import QtQuick
 import Atoll
 
+/**
+ * The current temperature, for the resting island. Off unless
+ * `idle.showWeather` is on; nothing is fetched before that. The forecast comes
+ * from open-meteo.com, and without `weather.latitude` / `weather.longitude`
+ * the rough position is looked up once from the IP address at ipwho.is.
+ */
 Item {
     id: root
 
-    readonly property bool weatherEnabled: Cfg.get("idle.showWeather", true)
-    property string weatherText: ""
-    property bool loaded: false
+    readonly property bool weatherEnabled: Cfg.get("idle.showWeather", false)
+    readonly property bool fahrenheit: {
+        const unit = Cfg.get("weather.unit", "auto")
+        return unit === "fahrenheit" || (unit === "auto" && Qt.locale().measurementSystem === Locale.ImperialUSSystem)
+    }
+
+    property string temperature: ""
+    property var iconNames: []
     property var cachedLat: null
     property var cachedLon: null
 
     implicitWidth: row.implicitWidth
     implicitHeight: row.implicitHeight
-    visible: weatherEnabled && weatherText.length > 0
+    visible: weatherEnabled && temperature.length > 0
+
+    onWeatherEnabledChanged: if (!weatherEnabled) {
+        temperature = ""
+    }
+    onFahrenheitChanged: refresh()
 
     Row {
         id: row
         anchors.verticalCenter: parent.verticalCenter
         spacing: 4
 
+        IconImage {
+            anchors.verticalCenter: parent.verticalCenter
+            width: Theme.size(14)
+            height: width
+            names: root.iconNames
+        }
+
         Text {
             anchors.verticalCenter: parent.verticalCenter
-            text: root.weatherText
+            text: root.temperature
             color: Theme.foreground
             font.family: Theme.fontFamily
             font.pixelSize: Theme.size(12)
@@ -32,32 +55,35 @@ Item {
         }
     }
 
-    function getSymbol(code, isDay) {
-        if (code === 0) return isDay ? "☀️" : "🌙"
-        if (code <= 3) return "⛅"
-        if (code <= 48) return "🌫️"
-        if (code <= 67 || (code >= 80 && code <= 82)) return "🌧️"
-        if (code <= 77 || code === 85 || code === 86) return "❄️"
-        if (code >= 95) return "⚡"
-        return "🌤️"
+    /** WMO weather code to freedesktop icon names, most specific first. */
+    function icons(code, isDay) {
+        const night = isDay ? "" : "-night"
+        if (code === 0) return ["weather-clear" + night, "weather-clear"]
+        if (code <= 2) return ["weather-few-clouds" + night, "weather-few-clouds"]
+        if (code === 3) return ["weather-overcast", "weather-clouds"]
+        if (code <= 48) return ["weather-fog", "weather-overcast"]
+        if (code <= 67 || (code >= 80 && code <= 82)) return ["weather-showers", "weather-showers-scattered"]
+        if (code <= 77 || code === 85 || code === 86) return ["weather-snow", "weather-snow-scattered"]
+        if (code >= 95) return ["weather-storm", "weather-showers"]
+        return ["weather-few-clouds" + night, "weather-few-clouds"]
     }
 
-    function doFetch(lat, lon) {
-        const url = "https://api.open-meteo.com/v1/forecast?latitude=" + lat + "&longitude=" + lon + "&current=temperature_2m,weather_code,is_day&timezone=auto"
+    function fetchWeather(lat, lon) {
+        const url = "https://api.open-meteo.com/v1/forecast?latitude=" + lat + "&longitude=" + lon
+                    + "&current=temperature_2m,weather_code,is_day&timezone=auto"
+                    + (root.fahrenheit ? "&temperature_unit=fahrenheit" : "")
         const req = new XMLHttpRequest()
         req.open("GET", url, true)
         req.onreadystatechange = function() {
-            if (req.readyState === 4 && req.status === 200) {
-                try {
-                    const data = JSON.parse(req.responseText)
-                    const cur = data.current
-                    const temp = Math.round(cur.temperature_2m)
-                    const symbol = getSymbol(cur.weather_code, cur.is_day)
-                    root.weatherText = symbol + " " + temp + "°C"
-                    root.loaded = true
-                } catch (e) {
-                    console.warn("atoll: weather parse error:", e)
-                }
+            if (req.readyState !== XMLHttpRequest.DONE || req.status !== 200 || !root.weatherEnabled) {
+                return
+            }
+            try {
+                const current = JSON.parse(req.responseText).current
+                root.temperature = Math.round(current.temperature_2m) + (root.fahrenheit ? "°F" : "°C")
+                root.iconNames = root.icons(current.weather_code, current.is_day)
+            } catch (e) {
+                console.warn("atoll: weather reply could not be read:", e)
             }
         }
         req.send()
@@ -65,63 +91,40 @@ Item {
 
     function refresh() {
         if (!weatherEnabled) {
-            weatherText = ""
             return
         }
-
-        const configuredLat = Cfg.get("weather.latitude", null)
-        const configuredLon = Cfg.get("weather.longitude", null)
-        if (configuredLat !== null && configuredLon !== null) {
-            doFetch(configuredLat, configuredLon)
+        const lat = Cfg.get("weather.latitude", null)
+        const lon = Cfg.get("weather.longitude", null)
+        if (lat !== null && lon !== null) {
+            fetchWeather(lat, lon)
             return
         }
-
         if (cachedLat !== null && cachedLon !== null) {
-            doFetch(cachedLat, cachedLon)
+            fetchWeather(cachedLat, cachedLon)
             return
         }
-
-        // Auto-detect location by IP
-        const geoReq = new XMLHttpRequest()
-        geoReq.open("GET", "https://ipwho.is/", true)
-        geoReq.onreadystatechange = function() {
-            if (geoReq.readyState === 4) {
-                if (geoReq.status === 200) {
-                    try {
-                        const geo = JSON.parse(geoReq.responseText)
-                        if (geo.success && geo.latitude !== undefined && geo.longitude !== undefined) {
-                            root.cachedLat = geo.latitude
-                            root.cachedLon = geo.longitude
-                            doFetch(geo.latitude, geo.longitude)
-                            return
-                        }
-                    } catch (e) {}
+        const geo = new XMLHttpRequest()
+        geo.open("GET", "https://ipwho.is/", true)
+        geo.onreadystatechange = function() {
+            if (geo.readyState !== XMLHttpRequest.DONE || geo.status !== 200) {
+                return
+            }
+            try {
+                const place = JSON.parse(geo.responseText)
+                if (place.success && place.latitude !== undefined && place.longitude !== undefined) {
+                    root.cachedLat = place.latitude
+                    root.cachedLon = place.longitude
+                    root.fetchWeather(place.latitude, place.longitude)
                 }
-
-                // Secondary fallback
-                const fallbackReq = new XMLHttpRequest()
-                fallbackReq.open("GET", "http://ip-api.com/json/", true)
-                fallbackReq.onreadystatechange = function() {
-                    if (fallbackReq.readyState === 4 && fallbackReq.status === 200) {
-                        try {
-                            const geo2 = JSON.parse(fallbackReq.responseText)
-                            if (geo2.status === "success" && geo2.lat !== undefined && geo2.lon !== undefined) {
-                                root.cachedLat = geo2.lat
-                                root.cachedLon = geo2.lon
-                                doFetch(geo2.lat, geo2.lon)
-                            }
-                        } catch (e) {}
-                    }
-                }
-                fallbackReq.send()
+            } catch (e) {
+                console.warn("atoll: location lookup could not be read:", e)
             }
         }
-        geoReq.send()
+        geo.send()
     }
 
     Timer {
-        id: timer
-        interval: 900000 // 15 mins
+        interval: 15 * 60 * 1000
         repeat: true
         running: root.weatherEnabled
         triggeredOnStart: true

@@ -8,6 +8,48 @@ SettingsPage {
     description: qsTr("Anything that speaks MPRIS2 - Spotify, a browser tab, a local player - reaches the island the same way.")
 
     SettingsGroup {
+        title: qsTr("Audio outputs")
+        SettingRow {
+            label: qsTr("Output selection")
+            description: qsTr("Choose an output in the island. Release Bluetooth headphones before using them on another device. Automatic Apple device switching is only available between supported Apple devices.")
+            wide: true
+            AudioOutputPicker { width: parent.width }
+        }
+        Repeater {
+            model: App.audio.outputs
+            delegate: SettingRow {
+                required property var modelData
+                label: modelData.bluetooth ? qsTr("Bluetooth name") : qsTr("Output name")
+                description: qsTr("Saved only on this computer")
+                InputField {
+                    value: modelData.label
+                    onCommitted: value => App.audio.renameOutput(modelData.id, value)
+                }
+            }
+        }
+    }
+
+    SettingsGroup {
+        title: qsTr("Hover player")
+        NumberSetting { label: qsTr("Width"); key: "media.hoverWidth"; defaultValue: 360; from: 280; to: 520; step: 10; suffix: " px" }
+        TokenToggles {
+            label: qsTr("Buttons")
+            description: qsTr("Which controls the hover player shows, left to right.")
+            key: "media.hoverButtons"
+            defaultValue: ["shuffle", "previous", "playPause", "next", "output"]
+            options: [
+                { value: "shuffle", label: qsTr("Shuffle") },
+                { value: "previous", label: qsTr("Previous") },
+                { value: "playPause", label: qsTr("Play / pause") },
+                { value: "next", label: qsTr("Next") },
+                { value: "repeat", label: qsTr("Repeat") },
+                { value: "output", label: qsTr("Audio output") }
+            ]
+            last: true
+        }
+    }
+
+    SettingsGroup {
         title: qsTr("Now playing")
 
         BoolSetting {
@@ -118,13 +160,6 @@ SettingsPage {
             opacity: enabled ? 1 : 0.45
         }
 
-        BoolSetting {
-            label: qsTr("Click a line to seek")
-            key: "lyrics.seekOnClick"
-            defaultValue: true
-            enabled: Cfg.get("lyrics.enabled", true)
-            opacity: enabled ? 1 : 0.45
-        }
 
         NumberSetting {
             label: qsTr("Timing offset")

@@ -42,7 +42,7 @@ Item {
             width: parent.width
             height: 4
             radius: 2
-            color: "#2a2a33"
+            color: Skin.control
 
             Rectangle {
                 width: parent.width * control.ratio
@@ -58,9 +58,7 @@ Item {
             width: 16
             height: 16
             radius: 8
-            color: "#f2f2f5"
-            border.width: 1
-            border.color: Skin.line
+            color: "#ffffff"
             scale: drag.pressed ? 1.15 : 1
 
             Behavior on scale {

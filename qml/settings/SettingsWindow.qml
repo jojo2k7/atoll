@@ -14,38 +14,67 @@ import Atoll
 Window {
     id: root
 
-    property int current: 0
+    property string current: "placement"
+    property string query: ""
 
+    /**
+     * Every page, in sidebar order. `group` starts a new block in the sidebar;
+     * `words` are what the search field matches besides the title.
+     */
     readonly property var pages: [
-        { title: qsTr("Placement"), icon: ["preferences-desktop-display", "video-display"] },
-        { title: qsTr("Appearance"), icon: ["preferences-desktop-theme", "preferences-desktop-color"] },
-        { title: qsTr("Content"), icon: ["view-list-details", "preferences-desktop"] },
-        { title: qsTr("Media"), icon: ["multimedia-player", "audio-x-generic"] },
-        { title: qsTr("Notifications"), icon: ["preferences-desktop-notification", "notifications"] },
-        { title: qsTr("Behaviour"), icon: ["input-mouse", "preferences-desktop-mouse"] },
-        { title: qsTr("Sharing"), icon: ["emblem-shared", "document-send"] },
-        { title: qsTr("Calendar"), icon: ["view-calendar", "office-calendar", "x-office-calendar"] },
-        { title: qsTr("Assistant"), icon: ["preferences-desktop-ai", "tools-wizard", "help-hint"] },
-        { title: qsTr("About"), icon: ["help-about", "dialog-information"] }
+        { key: "placement", file: "PlacementPage.qml", title: qsTr("Placement"), glyph: "placement", tint: "#0a84ff", group: "",
+          words: "monitor screen position corner notch pill size width height margin layer" },
+        { key: "appearance", file: "AppearancePage.qml", title: qsTr("Appearance"), glyph: "appearance", tint: "#bf5af2", group: "",
+          words: "colour color accent background font border shadow animation spring gooey" },
+        { key: "content", file: "ContentPage.qml", title: qsTr("Content"), glyph: "content", tint: "#30b158", group: "",
+          words: "clock date idle resting modules battery bluetooth privacy lock screen osd volume" },
+
+        { key: "media", file: "MediaPage.qml", title: qsTr("Media"), glyph: "media", tint: "#ff375f", group: qsTr("Activities"),
+          words: "music player spotify lyrics visualizer cava album cover" },
+        { key: "notifications", file: "NotificationsPage.qml", title: qsTr("Notifications"), glyph: "notifications", tint: "#ff453a", group: qsTr("Activities"),
+          words: "do not disturb dnd timeout apps actions" },
+        { key: "calendar", file: "CalendarPage.qml", title: qsTr("Calendar"), glyph: "calendar", tint: "#ff9f0a", group: qsTr("Activities"),
+          words: "ics google icloud events meeting" },
+        { key: "focus", file: "FocusPage.qml", title: qsTr("Focus"), glyph: "focus", tint: "#5e5ce6", group: qsTr("Activities"),
+          words: "pomodoro timer break session sound" },
+
+        { key: "controls", file: "ControlsPage.qml", title: qsTr("Controls"), glyph: "controls", tint: "#8e8e93", group: qsTr("Interaction"),
+          words: "click middle right scroll hover hold long press shortcut hotkey keyboard behaviour behavior mouse" },
+        { key: "sharing", file: "SharingPage.qml", title: qsTr("Sharing"), glyph: "sharing", tint: "#32ade6", group: qsTr("Interaction"),
+          words: "localsend airdrop files drop send receive" },
+
+        { key: "ai", file: "AiPage.qml", title: qsTr("Assistant"), glyph: "assistant", tint: "#2fb7c9", group: qsTr("Claude"),
+          words: "ai claude gemini openrouter model api key permissions glow screenshot" },
+        { key: "office", file: "OfficePage.qml", title: qsTr("Claude Office"), glyph: "office", tint: "#d97757", group: qsTr("Claude"),
+          words: "agents claude code sessions hooks questions" },
+
+        { key: "about", file: "AboutPage.qml", title: qsTr("About"), glyph: "about", tint: "#8e8e93", group: " ",
+          words: "version license credits" }
     ]
 
-    /** Page names the island can ask to land on. */
-    readonly property var pageKeys: ["placement", "appearance", "content", "media",
-                                     "notifications", "behaviour", "sharing", "calendar", "ai", "about"]
+    readonly property var currentPage: pages.find(p => p.key === current) ?? pages[0]
+
+    readonly property var visiblePages: {
+        const q = query.trim().toLowerCase()
+        if (q.length === 0) {
+            return pages
+        }
+        return pages.filter(p => (p.title + " " + p.words).toLowerCase().includes(q))
+    }
 
     Component.onCompleted: {
         // The island opens this window on a specific page when it is offering
         // to fix something the user has not set up yet.
-        const wanted = pageKeys.indexOf(App.settingsPage)
-        if (wanted >= 0) {
+        const wanted = App.settingsPage === "behaviour" ? "controls" : App.settingsPage
+        if (pages.some(p => p.key === wanted)) {
             current = wanted
         }
     }
 
-    width: 940
-    height: 700
-    minimumWidth: 720
-    minimumHeight: 520
+    width: 960
+    height: 720
+    minimumWidth: 760
+    minimumHeight: 540
     visible: true
     color: Skin.window
     title: qsTr("Atoll Settings")
@@ -76,13 +105,18 @@ Window {
         onActivated: root.close()
     }
 
+    Shortcut {
+        sequences: [StandardKey.Find]
+        onActivated: search.forceActiveFocus()
+    }
+
     // ---- sidebar ---------------------------------------------------------
     Rectangle {
         id: sidebar
         anchors.left: parent.left
         anchors.top: parent.top
         anchors.bottom: parent.bottom
-        width: 224
+        width: 236
         color: Skin.sidebar
 
         Rectangle {
@@ -92,180 +126,236 @@ Window {
             color: Skin.line
         }
 
-        Column {
-            anchors.left: parent.left
-            anchors.right: parent.right
-            anchors.top: parent.top
-            anchors.margins: 14
-            anchors.topMargin: 22
-            spacing: 4
+        Row {
+            id: brand
+            x: 20
+            y: 22
+            spacing: 10
 
-            Row {
-                x: 8
-                spacing: 10
-                bottomPadding: 16
-
-                Rectangle {
-                    anchors.verticalCenter: parent.verticalCenter
-                    width: 26
-                    height: 14
-                    radius: 7
-                    color: Skin.accent
-                }
-
-                Column {
-                    spacing: 0
-
-                    Text {
-                        text: "Atoll"
-                        color: Skin.text
-                        font.pixelSize: 16
-                        font.weight: Font.DemiBold
-                    }
-
-                    Text {
-                        text: qsTr("version %1").arg(App.version)
-                        color: Skin.muted
-                        font.pixelSize: 10
-                    }
-                }
+            Image {
+                anchors.verticalCenter: parent.verticalCenter
+                width: 34
+                height: 17
+                sourceSize: Qt.size(68, 34)
+                source: "qrc:/qt/qml/Atoll/data/icons/atoll-mark.svg"
             }
 
-            Repeater {
-                model: root.pages
+            Column {
+                anchors.verticalCenter: parent.verticalCenter
 
-                delegate: Rectangle {
-                    id: entry
+                Text {
+                    text: "Atoll"
+                    color: Skin.text
+                    font.pixelSize: 15
+                    font.weight: Font.Bold
+                }
 
-                    required property int index
-                    required property var modelData
-
-                    readonly property bool active: index === root.current
-
-                    width: sidebar.width - 28
-                    height: 38
-                    radius: 10
-                    color: active ? Skin.cardHover : (hover.hovered ? "#131319" : "transparent")
-
-                    Behavior on color {
-                        ColorAnimation {
-                            duration: 120
-                        }
-                    }
-
-                    Rectangle {
-                        anchors.left: parent.left
-                        anchors.verticalCenter: parent.verticalCenter
-                        width: 3
-                        height: entry.active ? 18 : 0
-                        radius: 2
-                        color: Skin.accent
-
-                        Behavior on height {
-                            NumberAnimation {
-                                duration: 140
-                                easing.type: Easing.OutCubic
-                            }
-                        }
-                    }
-
-                    Row {
-                        anchors.left: parent.left
-                        anchors.leftMargin: 14
-                        anchors.verticalCenter: parent.verticalCenter
-                        spacing: 10
-
-                        IconImage {
-                            anchors.verticalCenter: parent.verticalCenter
-                            width: 16
-                            height: 16
-                            names: entry.modelData.icon
-                            opacity: entry.active ? 1 : 0.7
-                        }
-
-                        Text {
-                            anchors.verticalCenter: parent.verticalCenter
-                            text: entry.modelData.title
-                            color: entry.active ? Skin.text : Skin.muted
-                            font.pixelSize: 13
-                            font.weight: entry.active ? Font.DemiBold : Font.Normal
-                        }
-                    }
-
-                    HoverHandler {
-                        id: hover
-                        cursorShape: Qt.PointingHandCursor
-                    }
-
-                    TapHandler {
-                        onTapped: root.current = entry.index
-                    }
+                Text {
+                    text: qsTr("Version %1").arg(App.version)
+                    color: Skin.faint
+                    font.pixelSize: 10
                 }
             }
         }
 
-        // ---- live island preview ------------------------------------------
-        Column {
+        Rectangle {
+            id: searchBox
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.top: brand.bottom
+            anchors.margins: 14
+            anchors.topMargin: 18
+            height: 28
+            radius: Skin.radius
+            color: Skin.field
+            border.width: search.activeFocus ? 2 : 0
+            border.color: Qt.alpha(Skin.accent, 0.8)
+
+            Image {
+                id: searchIcon
+                anchors.left: parent.left
+                anchors.leftMargin: 8
+                anchors.verticalCenter: parent.verticalCenter
+                width: 14
+                height: 14
+                sourceSize: Qt.size(28, 28)
+                source: Skin.icon("search")
+            }
+
+            TextInput {
+                id: search
+                anchors.left: searchIcon.right
+                anchors.leftMargin: 6
+                anchors.right: parent.right
+                anchors.rightMargin: 8
+                anchors.verticalCenter: parent.verticalCenter
+                color: Skin.text
+                selectionColor: Skin.accent
+                font.pixelSize: 12
+                clip: true
+                onTextChanged: root.query = text
+                Keys.onEscapePressed: {
+                    text = ""
+                    focus = false
+                }
+                Keys.onReturnPressed: if (root.visiblePages.length > 0) {
+                    root.current = root.visiblePages[0].key
+                }
+            }
+
+            Text {
+                anchors.left: search.left
+                anchors.verticalCenter: parent.verticalCenter
+                text: qsTr("Search")
+                color: Skin.faint
+                font.pixelSize: 12
+                visible: search.text.length === 0
+            }
+        }
+
+        ListView {
+            id: nav
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.top: searchBox.bottom
+            anchors.bottom: nowPlaying.top
+            anchors.topMargin: 10
+            anchors.leftMargin: 10
+            anchors.rightMargin: 10
+            clip: true
+            boundsBehavior: Flickable.StopAtBounds
+            model: root.visiblePages
+            spacing: 1
+
+            section.property: "group"
+            section.criteria: ViewSection.FullString
+            section.delegate: Item {
+                required property string section
+
+                width: ListView.view.width
+                height: section.length > 0 && root.query.length === 0 ? 30 : 0
+                visible: height > 0
+
+                Text {
+                    anchors.left: parent.left
+                    anchors.leftMargin: 10
+                    anchors.bottom: parent.bottom
+                    anchors.bottomMargin: 5
+                    text: section.trim()
+                    color: Skin.faint
+                    font.pixelSize: 11
+                    font.weight: Font.DemiBold
+                }
+            }
+
+            delegate: Rectangle {
+                id: entry
+
+                required property var modelData
+
+                readonly property bool active: modelData.key === root.current
+
+                width: ListView.view.width
+                height: 32
+                radius: 7
+                color: active ? Skin.selection : (hover.hovered ? "#09ffffff" : "transparent")
+
+                Row {
+                    anchors.left: parent.left
+                    anchors.leftMargin: 8
+                    anchors.verticalCenter: parent.verticalCenter
+                    spacing: 10
+
+                    IconTile {
+                        anchors.verticalCenter: parent.verticalCenter
+                        size: 22
+                        glyph: entry.modelData.glyph
+                        tint: entry.modelData.tint
+                    }
+
+                    Text {
+                        anchors.verticalCenter: parent.verticalCenter
+                        text: entry.modelData.title
+                        color: entry.active ? Skin.text : "#d4d4da"
+                        font.pixelSize: 13
+                        font.weight: entry.active ? Font.DemiBold : Font.Normal
+                    }
+                }
+
+                HoverHandler {
+                    id: hover
+                    cursorShape: Qt.PointingHandCursor
+                }
+
+                TapHandler {
+                    onTapped: root.current = entry.modelData.key
+                }
+            }
+
+            Text {
+                anchors.horizontalCenter: parent.horizontalCenter
+                y: 16
+                text: qsTr("No matches")
+                color: Skin.faint
+                font.pixelSize: 12
+                visible: root.visiblePages.length === 0
+            }
+        }
+
+        // ---- what is playing, as a reminder of where the accent comes from
+        Item {
+            id: nowPlaying
             anchors.left: parent.left
             anchors.right: parent.right
             anchors.bottom: parent.bottom
-            anchors.margins: 14
-            spacing: 8
-
-            Text {
-                text: qsTr("NOW PLAYING")
-                color: Skin.muted
-                font.pixelSize: 9
-                font.weight: Font.DemiBold
-                font.letterSpacing: 0.8
-                visible: App.media.active !== null
-            }
+            height: App.media.active !== null ? 56 : 0
+            visible: height > 0
 
             Rectangle {
-                width: parent.width
-                height: 56
-                radius: 12
-                color: Skin.card
-                border.width: 1
-                border.color: Skin.line
-                visible: App.media.active !== null
+                anchors.top: parent.top
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.leftMargin: 14
+                anchors.rightMargin: 14
+                height: 1
+                color: Skin.line
+            }
 
-                Row {
-                    anchors.fill: parent
-                    anchors.margins: 10
-                    spacing: 10
+            Row {
+                anchors.left: parent.left
+                anchors.leftMargin: 18
+                anchors.verticalCenter: parent.verticalCenter
+                spacing: 10
 
-                    AlbumArt {
-                        anchors.verticalCenter: parent.verticalCenter
-                        width: 36
-                        height: 36
-                        source: App.media.active ? App.media.active.artUrl : ""
-                        fallbackIcon: App.media.active ? App.media.active.iconName : "media-optical-audio"
+                AlbumArt {
+                    anchors.verticalCenter: parent.verticalCenter
+                    width: 28
+                    height: 28
+                    source: App.media.active ? App.media.active.artUrl : ""
+                    fallbackIcon: App.media.active ? App.media.active.iconName : "media-optical-audio"
+                }
+
+                Column {
+                    anchors.verticalCenter: parent.verticalCenter
+                    width: sidebar.width - 80
+
+                    Text {
+                        width: parent.width
+                        text: App.media.active ? App.media.active.title : ""
+                        color: Skin.text
+                        font.pixelSize: 11
+                        font.weight: Font.DemiBold
+                        elide: Text.ElideRight
                     }
 
-                    Column {
-                        anchors.verticalCenter: parent.verticalCenter
-                        width: parent.width - 56
-                        spacing: 2
-
-                        Text {
-                            width: parent.width
-                            text: App.media.active ? App.media.active.title : ""
-                            color: Skin.text
-                            font.pixelSize: 11
-                            font.weight: Font.DemiBold
-                            elide: Text.ElideRight
-                        }
-
-                        Text {
-                            width: parent.width
-                            text: App.lyrics.currentLine.length > 0
-                                  ? App.lyrics.currentLine
-                                  : (App.media.active ? App.media.active.artist : "")
-                            color: App.lyrics.currentLine.length > 0 ? Skin.accent : Skin.muted
-                            font.pixelSize: 10
-                            elide: Text.ElideRight
-                        }
+                    Text {
+                        width: parent.width
+                        text: App.lyrics.currentLine.length > 0
+                              ? App.lyrics.currentLine
+                              : (App.media.active ? App.media.active.artist : "")
+                        color: App.lyrics.currentLine.length > 0 ? Skin.accent : Skin.muted
+                        font.pixelSize: 10
+                        elide: Text.ElideRight
                     }
                 }
             }
@@ -273,60 +363,28 @@ Window {
     }
 
     // ---- pages -----------------------------------------------------------
-    Item {
+    Loader {
+        id: pageLoader
         anchors.left: sidebar.right
         anchors.right: parent.right
         anchors.top: parent.top
         anchors.bottom: parent.bottom
+        source: Qt.resolvedUrl(root.currentPage.file)
 
-        PlacementPage {
-            anchors.fill: parent
-            visible: root.current === 0
+        onLoaded: {
+            item.glyph = root.currentPage.glyph
+            item.tint = root.currentPage.tint
+            item.opacity = 0
+            fadeIn.restart()
         }
 
-        AppearancePage {
-            anchors.fill: parent
-            visible: root.current === 1
-        }
-
-        ContentPage {
-            anchors.fill: parent
-            visible: root.current === 2
-        }
-
-        MediaPage {
-            anchors.fill: parent
-            visible: root.current === 3
-        }
-
-        NotificationsPage {
-            anchors.fill: parent
-            visible: root.current === 4
-        }
-
-        BehaviorPage {
-            anchors.fill: parent
-            visible: root.current === 5
-        }
-
-        SharingPage {
-            anchors.fill: parent
-            visible: root.current === 6
-        }
-
-        CalendarPage {
-            anchors.fill: parent
-            visible: root.current === 7
-        }
-
-        AiPage {
-            anchors.fill: parent
-            visible: root.current === 8
-        }
-
-        AboutPage {
-            anchors.fill: parent
-            visible: root.current === 9
+        NumberAnimation {
+            id: fadeIn
+            target: pageLoader.item
+            property: "opacity"
+            to: 1
+            duration: 140
+            easing.type: Easing.OutCubic
         }
     }
 }

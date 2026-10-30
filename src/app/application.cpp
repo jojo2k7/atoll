@@ -13,8 +13,10 @@
 #include "dbus/notificationmodel.h"
 #include "dbus/notificationmonitor.h"
 #include "dbus/osdmonitor.h"
+#include "input/shortcutservice.h"
 #include "ipc/ipcservice.h"
 #include "media/lyricsservice.h"
+#include "office/officeservice.h"
 #include "share/shareservice.h"
 #include "shellwindow.h"
 #include "system/battery.h"
@@ -25,6 +27,7 @@
 
 #include <QClipboard>
 #include <QCoreApplication>
+#include <QDir>
 #include <QDBusConnection>
 #include <QDBusConnectionInterface>
 #include <QDBusMessage>
@@ -74,6 +77,11 @@ Application::Application(QObject *parent)
     m_activator = new AppActivator(this);
     m_notifications = new NotificationModel(m_config, m_activator, this);
     m_media = new MprisManager(m_config, this);
+    m_audio = new AudioOutputs(m_config, this);
+    m_audio->start();
+    connect(m_audio, &AudioOutputs::pauseRequested, this, [this] {
+        if (m_media->active() && m_media->active()->playing()) m_media->active()->pause();
+    });
     m_battery = new Battery(this);
     m_bluetooth = new BluetoothService(this);
     m_clock = new Clock(m_config, this);
@@ -85,6 +93,14 @@ Application::Application(QObject *parent)
     m_ai = new AiService(m_config, this);
     m_calendar = new CalendarService(m_config, this);
     m_privacy = new PrivacyMonitor(m_config, this);
+    m_office = new OfficeService(m_config, this);
+    m_focus = new FocusService(m_config, this);
+    m_shortcuts = new ShortcutService(m_config, this);
+    connect(m_lock, &LockMonitor::lockedChanged, this, [this] { m_focus->locked(m_lock->locked()); });
+    connect(m_focus, &FocusService::started, this, [this] {
+        if (m_config->value("focus.pauseMedia", true).toBool() && m_media->active() && m_media->active()->playing())
+            m_media->active()->pause();
+    });
 
     connect(m_notificationMonitor, &NotificationMonitor::posted, m_notifications, &NotificationModel::onPosted);
     connect(m_notificationMonitor, &NotificationMonitor::idAssigned, m_notifications, &NotificationModel::onIdAssigned);
@@ -97,6 +113,7 @@ Application::Application(QObject *parent)
         openSettings();
     });
     connect(m_ipc, &IpcService::shareRequested, m_share, &ShareService::offerPaths);
+    connect(m_ipc, &IpcService::officeRequested, m_office, &OfficeService::toggle);
     connect(m_ipc, &IpcService::askRequested, m_ai, &AiService::ask);
     connect(m_ipc, &IpcService::assistantRequested, m_ai, &AiService::engage);
     // The gate the command-line client is started with reaches the island
@@ -137,6 +154,12 @@ QString Application::version() const
     return QStringLiteral(ATOLL_VERSION);
 }
 
+QString Application::userName() const
+{
+    const QString name = qEnvironmentVariable("USER");
+    return name.isEmpty() ? QDir::home().dirName() : name;
+}
+
 QString Application::settingsPage() const
 {
     return qEnvironmentVariable("ATOLL_SETTINGS_PAGE");
@@ -154,6 +177,7 @@ bool Application::debugState() const
 
 void Application::start()
 {
+    m_focus->activate();
     QStringList rules = OsdMonitor::matchRules();
     rules += NotificationMonitor::matchRules(m_config->value(u"notifications.trackIds"_s, true).toBool());
 
@@ -174,6 +198,10 @@ void Application::start()
     }
 
     m_ipc->registerOnBus();
+    m_office->start();
+    // Like discovery below: two processes binding the same keys would fight
+    // over them, and only the island can act on them.
+    m_shortcuts->start();
 
     // Discovery only starts once the island is really up: a settings window
     // has no business announcing itself to the network.

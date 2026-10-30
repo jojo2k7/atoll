@@ -3,25 +3,28 @@
 import QtQuick
 import Atoll
 
-/** The little square next to a number field. */
-Rectangle {
+/** One half of the stepper next to a number field. */
+Item {
     id: button
 
     property string glyph: "+"
 
     signal clicked()
 
-    width: 30
-    height: 32
-    radius: 9
-    color: hover.hovered ? Skin.cardHover : "#22222a"
-    border.width: 1
-    border.color: Skin.line
+    width: 26
+    height: Skin.controlHeight
+
+    Rectangle {
+        anchors.fill: parent
+        anchors.margins: 3
+        radius: Skin.radius - 3
+        color: hover.hovered ? Skin.controlHover : "transparent"
+    }
 
     Text {
         anchors.centerIn: parent
         text: button.glyph
-        color: Skin.text
+        color: hover.hovered ? Skin.text : Skin.muted
         font.pixelSize: 15
     }
 

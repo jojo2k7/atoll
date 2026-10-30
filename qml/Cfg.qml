@@ -27,10 +27,12 @@ QtObject {
     readonly property var lyrics: data.lyrics ?? ({})
     readonly property var lockScreen: data.lockScreen ?? ({})
     readonly property var sharing: data.sharing ?? ({})
-    readonly property var behavior: data.behavior ?? ({})
+    readonly property var controls: data.controls ?? ({})
     readonly property var ai: data.ai ?? ({})
     readonly property var clock: data.clock ?? ({})
 
+    readonly property bool fitCollapsedContent: island.fitCollapsedContent ?? true
+    readonly property int collapsedPadding: Math.max(4, island.collapsedPadding ?? 12)
     readonly property int collapsedWidth: island.collapsedWidth ?? 168
     readonly property int collapsedHeight: island.collapsedHeight ?? 32
     readonly property int expandedWidth: island.expandedWidth ?? 460
@@ -50,7 +52,6 @@ QtObject {
 
     /** The assistant needs both its own switch and the module switch. */
     readonly property bool aiEnabled: (modules.ai ?? true) && (ai.enabled ?? true)
-    readonly property int aiLongPress: ai.longPressMs ?? 450
     /**
      * The island's usual ceiling is meant for a media dashboard; a conversation
      * needs more room than that, so the assistant carries its own.
@@ -66,6 +67,15 @@ QtObject {
     readonly property int osdTimeout: osd.timeout ?? 1700
     readonly property int notificationTimeout: notifications.timeout ?? 5000
     readonly property int mediaPeekDuration: media.peekDuration ?? 4200
+
+    /** What each pointer trigger does; see Actions.qml and docs/controls.md. */
+    function control(trigger) {
+        return controls[trigger] ?? Actions.triggers.find(t => t.key === trigger).fallback
+    }
+    readonly property int longPressMs: controls.longPressMs ?? 450
+    readonly property int hoverDelay: controls.hoverDelay ?? 180
+    readonly property bool collapseOnLeave: controls.collapseOnLeave ?? true
+    readonly property int volumeStep: controls.volumeStep ?? 5
 
     readonly property bool lyricsInIsland: (lyrics.enabled ?? true) && (lyrics.showInIsland ?? true)
                                            && (modules.lyrics ?? true)

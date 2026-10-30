@@ -20,10 +20,8 @@ Item {
     Rectangle {
         id: screen
         anchors.fill: parent
-        radius: 10
-        color: "#0a0a0d"
-        border.width: 1
-        border.color: Skin.line
+        radius: 12
+        color: Skin.field
 
         Grid {
             anchors.fill: parent
@@ -57,7 +55,7 @@ Item {
                         width: parent.width - 14
                         height: 12
                         radius: 6
-                        color: parent.active ? Skin.accent : (hover.hovered ? "#31313c" : "#22222a")
+                        color: parent.active ? Skin.accent : (hover.hovered ? Skin.controlHover : Skin.control)
 
                         Behavior on color {
                             ColorAnimation {

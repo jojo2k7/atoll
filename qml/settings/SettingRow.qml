@@ -19,17 +19,16 @@ Item {
 
     width: parent ? parent.width : 0
     implicitHeight: row.wide
-                    ? labels.implicitHeight + slot.childrenRect.height + 28
-                    : Math.max(Skin.rowHeight, labels.implicitHeight + 20, slot.childrenRect.height + 16)
+                    ? labels.implicitHeight + slot.childrenRect.height + 30
+                    : Math.max(Skin.rowHeight, labels.implicitHeight + 22, slot.childrenRect.height + 16)
 
     Column {
         id: labels
         anchors.left: parent.left
-        anchors.leftMargin: 16
         anchors.top: parent.top
-        anchors.topMargin: row.wide ? 12 : Math.max(10, (row.height - labels.implicitHeight) / 2)
-        width: row.wide ? row.width - 32 : row.width - slot.childrenRect.width - 48
-        spacing: 2
+        anchors.topMargin: row.wide ? 12 : Math.max(11, (row.height - labels.implicitHeight) / 2)
+        width: row.wide ? row.width : row.width - slot.childrenRect.width - 32
+        spacing: 3
 
         Text {
             text: row.label
@@ -45,6 +44,7 @@ Item {
             visible: text.length > 0
             color: Skin.muted
             font.pixelSize: 11
+            lineHeight: 1.1
             wrapMode: Text.WordWrap
         }
     }
@@ -52,22 +52,17 @@ Item {
     Item {
         id: slot
         anchors.right: row.wide ? undefined : parent.right
-        anchors.rightMargin: 16
         anchors.left: row.wide ? parent.left : undefined
-        anchors.leftMargin: 16
         anchors.top: row.wide ? labels.bottom : undefined
         anchors.topMargin: 10
         anchors.verticalCenter: row.wide ? undefined : parent.verticalCenter
-        width: row.wide ? row.width - 32 : childrenRect.width
+        width: row.wide ? row.width : childrenRect.width
         height: childrenRect.height
     }
 
     Rectangle {
         anchors.bottom: parent.bottom
-        anchors.left: parent.left
-        anchors.right: parent.right
-        anchors.leftMargin: 16
-        anchors.rightMargin: 16
+        width: parent.width
         height: 1
         color: Skin.line
         visible: !row.last

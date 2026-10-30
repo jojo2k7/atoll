@@ -44,6 +44,15 @@ Config::Config(QObject *parent)
 QVariantMap Config::defaults()
 {
     static const char *json = R"JSON({
+  "focus": {
+    "minutes": 25, "breakMinutes": 5, "longBreakMinutes": 15, "rounds": 4,
+    "extensionMinutes": 5, "autoBreak": true, "autoFocus": false,
+    "soundEnabled": true, "soundFile": "", "volume": 25, "fadeSeconds": 3,
+    "soundDuringBreak": false, "pauseOnLock": true, "pauseMedia": true,
+    "quietNotifications": true, "allowCritical": true, "animations": true,
+    "breathSeconds": 6, "showCountdown": true, "accent": "#9ae8cb",
+    "intention": "One step at a time"
+  },
   "island": {
     "screens": ["primary"],
     "position": "top-center",
@@ -53,6 +62,8 @@ QVariantMap Config::defaults()
     "exclusiveZone": 0,
     "edgeMargin": 0,
     "sideMargin": 24,
+    "fitCollapsedContent": true,
+    "collapsedPadding": 12,
     "collapsedWidth": 168,
     "collapsedHeight": 32,
     "expandedWidth": 460,
@@ -60,6 +71,7 @@ QVariantMap Config::defaults()
     "cornerRadius": 0,
     "idleMode": "auto",
     "alwaysVisible": true,
+    "hideMode": "none",
     "surfaceHeight": 700
   },
   "appearance": {
@@ -111,6 +123,8 @@ QVariantMap Config::defaults()
     "openOnClick": true
   },
   "media": {
+    "hoverWidth": 360,
+    "hoverButtons": ["shuffle", "previous", "playPause", "next", "output"],
     "showOnPlay": true,
     "peekDuration": 4200,
     "preferred": [],
@@ -158,7 +172,6 @@ QVariantMap Config::defaults()
     "allowScreenshots": true,
     "systemPrompt": "",
     "commandTimeout": 180,
-    "longPressMs": 450,
     "panelWidth": 560,
     "glow": true,
     "glowIntensity": 0.8,
@@ -169,16 +182,20 @@ QVariantMap Config::defaults()
       "allowRoot": true
     }
   },
-  "behavior": {
-    "expandOnHover": false,
-    "hoverPeek": true,
+  "controls": {
+    "click": "expand",
+    "doubleClick": "none",
+    "middleClick": "officeOrPlayPause",
+    "rightClick": "settings",
+    "longPress": "assistant",
+    "scrollUp": "volumeUp",
+    "scrollDown": "volumeDown",
+    "hover": "peek",
+    "longPressMs": 450,
     "hoverDelay": 180,
     "collapseOnLeave": true,
-    "scrollAdjustsVolume": true,
     "volumeStep": 5,
-    "clickAction": "expand",
-    "middleClickAction": "playPause",
-    "rightClickAction": "settings"
+    "shortcuts": {}
   },
   "clock": {
     "timeFormat": "HH:mm",
@@ -191,7 +208,18 @@ QVariantMap Config::defaults()
     "showNotificationDot": true,
     "showBatteryDot": true,
     "showCalendarHint": true,
-    "showPrivacyIndicators": true
+    "showPrivacyIndicators": true,
+    "showWeather": false
+  },
+  "weather": {
+    "latitude": null,
+    "longitude": null,
+    "unit": "auto"
+  },
+  "office": {
+    "enabled": true,
+    "doorName": "",
+    "askInIsland": true
   }
 })JSON";
 
@@ -216,6 +244,48 @@ void Config::deepMerge(QVariantMap &target, const QVariantMap &overlay)
     }
 }
 
+void Config::migrate(QVariantMap &user)
+{
+    // Older configs spread the triggers over "behavior" and "ai". They are
+    // read into "controls" here, but only where the user has not set the new
+    // key: once the settings window has written "controls", it is the truth.
+    const QVariantMap behavior = user.value(u"behavior"_s).toMap();
+    const QVariantMap ai = user.value(u"ai"_s).toMap();
+    if (behavior.isEmpty() && !ai.contains(u"longPressMs"_s)) {
+        return;
+    }
+
+    QVariantMap controls = user.value(u"controls"_s).toMap();
+    const auto fill = [&controls](const QString &key, const QVariant &value) {
+        if (value.isValid() && !controls.contains(key)) {
+            controls.insert(key, value);
+        }
+    };
+
+    fill(u"click"_s, behavior.value(u"clickAction"_s));
+    fill(u"middleClick"_s, behavior.value(u"middleClickAction"_s));
+    fill(u"rightClick"_s, behavior.value(u"rightClickAction"_s));
+    if (behavior.contains(u"scrollAdjustsVolume"_s) && !behavior.value(u"scrollAdjustsVolume"_s).toBool()) {
+        fill(u"scrollUp"_s, u"none"_s);
+        fill(u"scrollDown"_s, u"none"_s);
+    }
+    fill(u"volumeStep"_s, behavior.value(u"volumeStep"_s));
+    if (behavior.contains(u"hoverPeek"_s) || behavior.contains(u"expandOnHover"_s)) {
+        if (behavior.value(u"expandOnHover"_s, false).toBool()) {
+            fill(u"hover"_s, u"expand"_s);
+        } else {
+            fill(u"hover"_s, behavior.value(u"hoverPeek"_s, true).toBool() ? u"peek"_s : u"none"_s);
+        }
+    }
+    fill(u"hoverDelay"_s, behavior.value(u"hoverDelay"_s));
+    fill(u"collapseOnLeave"_s, behavior.value(u"collapseOnLeave"_s));
+    fill(u"longPressMs"_s, ai.value(u"longPressMs"_s));
+
+    if (!controls.isEmpty()) {
+        user.insert(u"controls"_s, controls);
+    }
+}
+
 void Config::reload()
 {
     QVariantMap merged = defaults();
@@ -228,7 +298,9 @@ void Config::reload()
             qWarning("atoll: %s is not valid JSON (%s at offset %d) - using defaults",
                      qUtf8Printable(m_path), qUtf8Printable(err.errorString()), err.offset);
         } else if (doc.isObject()) {
-            deepMerge(merged, doc.object().toVariantMap());
+            QVariantMap user = doc.object().toVariantMap();
+            migrate(user);
+            deepMerge(merged, user);
         }
     }
 

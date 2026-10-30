@@ -54,7 +54,7 @@ Column {
 
     Column {
         width: parent.width
-        spacing: 6
+        spacing: 0
 
         Repeater {
             model: App.shell.screens
@@ -68,13 +68,26 @@ Column {
 
                 width: picker.width
                 height: 46
-                radius: 10
-                color: "#101015"
-                border.width: 1
-                border.color: App.shell.targets.indexOf(modelData.name) >= 0 ? Skin.accent : Skin.line
+                color: "transparent"
+
+                Rectangle {
+                    anchors.bottom: parent.bottom
+                    width: parent.width
+                    height: 1
+                    color: Skin.line
+                }
+
+                IconTile {
+                    id: screenTile
+                    anchors.left: parent.left
+                    anchors.verticalCenter: parent.verticalCenter
+                    size: 26
+                    glyph: "placement"
+                    tint: App.shell.targets.indexOf(modelData.name) >= 0 ? Skin.accent : Skin.control
+                }
 
                 Column {
-                    anchors.left: parent.left
+                    anchors.left: screenTile.right
                     anchors.leftMargin: 12
                     anchors.verticalCenter: parent.verticalCenter
                     spacing: 1
@@ -99,7 +112,7 @@ Column {
 
                 ToggleSwitch {
                     anchors.right: parent.right
-                    anchors.rightMargin: 12
+                    anchors.rightMargin: 0
                     anchors.verticalCenter: parent.verticalCenter
                     enabled: picker.mode === "custom"
                     opacity: picker.mode === "custom" ? 1 : 0.35

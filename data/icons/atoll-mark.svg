@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="792" height="392" viewBox="116.0 316.0 792.0 392.0">
+  <defs><linearGradient id="reef" gradientUnits="userSpaceOnUse" x1="172.0" y1="652.0" x2="852.0" y2="372.0"><stop offset="0" stop-color="#3ee6c4"/><stop offset="0.55" stop-color="#4b8dff"/><stop offset="1" stop-color="#a26bff"/></linearGradient></defs>
+  <path d="M672.0,372.0 L712.0,372.0 A140.0,140.0 0 0 1 712.0,652.0 L312.0,652.0 A140.0,140.0 0 0 1 312.0,372.0 L542.0,372.0" fill="none" stroke="url(#reef)" stroke-width="50.0" stroke-linecap="round"/>
+  <circle cx="607.0" cy="372.0" r="48.0" fill="url(#reef)"/>
+</svg>

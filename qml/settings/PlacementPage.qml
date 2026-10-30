@@ -117,8 +117,27 @@ SettingsPage {
     SettingsGroup {
         title: qsTr("Size")
 
+        BoolSetting {
+            label: qsTr("Fit collapsed content")
+            description: qsTr("Only use the space needed by the clock, icons or focus status.")
+            key: "island.fitCollapsedContent"
+            defaultValue: true
+        }
+
         NumberSetting {
-            label: qsTr("Collapsed width")
+            label: qsTr("Collapsed side padding")
+            key: "island.collapsedPadding"
+            defaultValue: 12
+            from: 4
+            to: 32
+            step: 1
+            suffix: " px"
+        }
+
+        NumberSetting {
+            label: qsTr("Collapsed minimum width")
+            enabled: !Cfg.fitCollapsedContent
+            opacity: enabled ? 1 : 0.45
             key: "island.collapsedWidth"
             defaultValue: 168
             from: 40

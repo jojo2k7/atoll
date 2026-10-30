@@ -111,11 +111,11 @@ SettingsPage {
 
                 Rectangle {
                     width: 160
-                    height: 32
-                    radius: 9
+                    height: Skin.controlHeight
+                    radius: Skin.radius
                     color: Skin.field
-                    border.width: 1
-                    border.color: nameInput.activeFocus ? Skin.accent : Skin.line
+                    border.width: nameInput.activeFocus ? 2 : 0
+                    border.color: Qt.alpha(Skin.accent, 0.8)
 
                     TextInput {
                         id: nameInput
@@ -126,7 +126,7 @@ SettingsPage {
                         clip: true
                         color: Skin.text
                         selectionColor: Skin.accent
-                        selectedTextColor: "#101014"
+                        selectedTextColor: Skin.accentText
                         font.pixelSize: 12
                         selectByMouse: true
                         Keys.onReturnPressed: addCalendar()
@@ -146,11 +146,11 @@ SettingsPage {
 
                 Rectangle {
                     width: 300
-                    height: 32
-                    radius: 9
+                    height: Skin.controlHeight
+                    radius: Skin.radius
                     color: Skin.field
-                    border.width: 1
-                    border.color: urlInput.activeFocus ? Skin.accent : Skin.line
+                    border.width: urlInput.activeFocus ? 2 : 0
+                    border.color: Qt.alpha(Skin.accent, 0.8)
 
                     TextInput {
                         id: urlInput
@@ -161,7 +161,7 @@ SettingsPage {
                         clip: true
                         color: Skin.text
                         selectionColor: Skin.accent
-                        selectedTextColor: "#101014"
+                        selectedTextColor: Skin.accentText
                         font.pixelSize: 12
                         selectByMouse: true
                         inputMethodHints: Qt.ImhUrlCharactersOnly

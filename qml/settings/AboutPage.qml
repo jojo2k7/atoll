@@ -79,7 +79,7 @@ SettingsPage {
 
         SettingRow {
             label: qsTr("D-Bus")
-            description: "org.atoll.Atoll on /Atoll - expand, collapse, toggle, showText, showProgress, share, settings, reloadConfig, quit."
+            description: "org.atoll.Atoll on /Atoll - action, expand, collapse, toggle, showText, showProgress, share, office, settings, reloadConfig, quit."
         }
 
         SettingRow {

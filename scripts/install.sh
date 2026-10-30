@@ -49,9 +49,9 @@ command -v sudo >/dev/null 2>&1 || die "This script needs sudo to install into /
 
 # ---- dependencies --------------------------------------------------------
 
-runtime="qt6-base qt6-declarative qt6-svg layer-shell-qt kcoreaddons ki18n dbus wayland"
+runtime="qt6-multimedia qt6-base qt6-declarative qt6-svg layer-shell-qt kcoreaddons ki18n dbus wayland"
 building="cmake ninja gcc pkgconf qt6-shadertools extra-cmake-modules wayland"
-optional="cava wireplumber polkit polkit-kde-agent libsecret xdg-desktop-portal-kde"
+optional="libpulse bluez cava wireplumber polkit polkit-kde-agent libsecret xdg-desktop-portal-kde"
 
 if command -v pacman >/dev/null 2>&1; then
     say "Installing what Atoll needs to build and run"

@@ -48,14 +48,14 @@ QString Clock::time() const
     // A format with h but no ap/AP means 12-hour without the am/pm suffix
     // (Qt would otherwise treat a bare h as 24-hour).
     if (format.contains(u'h') && !format.contains(u"ap"_s, Qt::CaseInsensitive)) {
-        const QString withSuffix = QLocale::system().toString(QDateTime::currentDateTime(), format + u" ap"_s);
+        const QString withSuffix = QLocale(QLocale::English).toString(QDateTime::currentDateTime(), format + u" ap"_s);
         return withSuffix.left(withSuffix.lastIndexOf(u' '));
     }
-    return QLocale::system().toString(QDateTime::currentDateTime(), format);
+    return QLocale(QLocale::English).toString(QDateTime::currentDateTime(), format);
 }
 
 QString Clock::date() const
 {
     const QString format = m_config->value(u"clock.dateFormat"_s, u"ddd d MMM"_s).toString();
-    return QLocale::system().toString(QDateTime::currentDateTime(), format);
+    return QLocale(QLocale::English).toString(QDateTime::currentDateTime(), format);
 }

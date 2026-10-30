@@ -64,7 +64,7 @@ Item {
         Behavior on opacity {
             NumberAnimation { duration: 180 }
         }
-        fill: Theme.background
+        fill: island.cleanSurface ? "#000000" : Theme.background
         gooey: Cfg.gooey
         // More strength means a wider halo, so bodies fuse from further apart.
         blurRadius: Cfg.collapsedHeight * (0.22 + 0.5 * Cfg.gooeyStrength)
@@ -78,7 +78,9 @@ Item {
 
     // ---- Dodge / Auto-hide logic ------------------------------------------
     // hideMode: "none" (always visible), "dodge" (dodge app windows), "autohide" (auto-hide when idle)
-    readonly property string hideMode: Cfg.get("island.hideMode", (Cfg.get("island.dodgeWindow", true) ? "dodge" : "none"))
+    readonly property string hideMode: Cfg.get("island.hideMode", "none")
+    onHideModeChanged: App.ipc.setDodgeHelper(hideMode === "dodge")
+    Component.onCompleted: App.ipc.setDodgeHelper(hideMode === "dodge")
 
     Timer {
         id: dodgeLinger
@@ -173,8 +175,16 @@ Item {
                 const s = island.satelliteGeometry
                 rects.push(Qt.rect(island.x + s.x, Math.max(0, island.y + s.y), s.width, s.height))
             }
-            // Always keep edge trigger in input region so pointer tracking never gets stuck
-            rects.push(Qt.rect(edgeTrigger.x, stage.atBottom ? stage.height - edgeTrigger.height : 0, edgeTrigger.width, edgeTrigger.height))
+            if (stage.hideMode !== "none") {
+                // A dodging island comes back when the pointer reaches the edge
+                // strip, so that strip has to receive input even while hidden.
+                rects.push(Qt.rect(edgeTrigger.x, stage.atBottom ? stage.height - edgeTrigger.height : 0,
+                                   edgeTrigger.width, edgeTrigger.height))
+            } else if (rects.length === 0 && Cfg.control("hover") !== "none") {
+                // A hidden island still needs somewhere to be woken up from.
+                const centre = stage.islandX + island.width / 2
+                rects.push(Qt.rect(centre - 30, stage.atBottom ? stage.height - 3 : 0, 60, 3))
+            }
             return rects
         }
 

@@ -25,12 +25,12 @@ SettingsPage {
 
         ChoiceSetting {
             label: qsTr("Window visibility")
-            description: qsTr("Dodge window keeps Atoll on desktop and hides inside apps. Auto-hide hides everywhere when idle.")
+            description: qsTr("\"Dodge windows\" steps aside while an application has the focus and stays on the bare desktop. \"Auto-hide\" hides the resting island everywhere. Either way it comes back when the pointer reaches the edge.")
             key: "island.hideMode"
-            defaultValue: "dodge"
+            defaultValue: "none"
             options: [
                 { value: "none", label: qsTr("Always visible") },
-                { value: "dodge", label: qsTr("Dodge window") },
+                { value: "dodge", label: qsTr("Dodge windows") },
                 { value: "autohide", label: qsTr("Auto-hide") }
             ]
         }
@@ -62,9 +62,9 @@ SettingsPage {
 
         BoolSetting {
             label: qsTr("Weather")
-            description: qsTr("Current temperature and weather icon next to date/time.")
+            description: qsTr("The current temperature next to the time, from open-meteo.com. Without a location in weather.latitude and weather.longitude, your rough position is looked up from your IP address at ipwho.is.")
             key: "idle.showWeather"
-            defaultValue: true
+            defaultValue: false
         }
 
         BoolSetting {

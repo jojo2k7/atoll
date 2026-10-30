@@ -10,10 +10,16 @@ usage() {
     cat <<'USAGE'
 Usage: atollctl <command> [arguments]
 
+  outputs                      show audio outputs and switching status
+  output <id>                  select/connect an output from that list
+  release-audio                release Bluetooth headphones for another device
+  focus <start|pause|stop|extend|next|status>  control focus sessions
   toggle                       expand or collapse the island
   expand                       expand the island
   collapse                     collapse the island
   dismiss                      dismiss whatever the island is showing
+  office                       toggle the Claude Code office
+  action <id>                  run any island action, e.g. assistant, dnd, next
   text <icon> <text>           show a one-line message
   progress <icon> <0-100> <t>  show a progress readout
   share <file> [file...]       offer files to nearby devices
@@ -38,6 +44,7 @@ Examples:
 
 Binding `atollctl assistant` to a key in System Settings gives the assistant a
 shortcut of its own, for the times the island is not where the pointer is.
+The ids `action` takes are listed in docs/controls.md.
 USAGE
 }
 
@@ -54,8 +61,13 @@ command=$1
 shift
 
 case "$command" in
-    toggle|expand|collapse|dismiss|quit|assistant) call "$command" ;;
+    outputs) exec gdbus call --session --dest "$BUS_NAME" --object-path "$OBJECT" --method "$IFACE.audioOutputs" ;;
+    output) [ $# -eq 1 ] || { usage; exit 1; }; call selectAudioOutput "$1" ;;
+    release-audio) call releaseAudio ;;
+    toggle|expand|collapse|dismiss|quit|assistant|office) call "$command" ;;
+    focus) exec gdbus call --session --dest "$BUS_NAME" --object-path "$OBJECT" --method "$IFACE.focus" "${1-status}" ;;
     reload) call reloadConfig ;;
+    action) [ $# -eq 1 ] || { usage; exit 1; }; call action "$1" ;;
     settings)
         # Works whether or not an island is running: the window is its own
         # process either way.

@@ -1,37 +1,236 @@
-# Atoll
+<p align="center">
+  <img src="data/icons/atoll.svg" alt="Atoll" width="128">
+</p>
 
-**A dynamic island for KDE Plasma.**
+<h1 align="center">Atoll</h1>
 
-Atoll is a small overlay that grows out of the edge of your screen and morphs to
-show whatever just happened: the volume you changed, the notification that
-arrived, the track that started playing. Click it and it unfolds into a
-dashboard: a full transport, synced lyrics, your notification backlog, a few
-toggles, and - when you give it a calendar to read - what is on it today.
-Right-click it for the settings window.
+<p align="center">
+  <b>The dynamic island, for KDE Plasma.</b><br>
+  Music, notifications, Claude and your focus - in one shape that grows out of the top of your screen.
+</p>
 
-By default it is a **notch**: square corners against the screen edge, rounded
-ones below, flush with the bezel the way a MacBook's is. It can also be a
-**pill** that floats below the edge instead - one setting away.
+<p align="center">
+  <a href="#install">Install</a> &nbsp;·&nbsp;
+  <a href="#everything-at-a-glance">Features</a> &nbsp;·&nbsp;
+  <a href="#controls">Controls</a> &nbsp;·&nbsp;
+  <a href="#in-depth">In depth</a> &nbsp;·&nbsp;
+  <a href="LICENSE">GPL-3.0</a>
+</p>
 
-It sits *over* the shell rather than beside it: on the overlay layer, ignoring
-the space panels reserve, so it can cover a Plasma panel instead of being
-pushed below one. With one line in its desktop file it can also stay up while
-the session is locked - see [On the lock screen](#on-the-lock-screen).
+<br>
 
-It is a native Qt 6 / QML application built on `wlr-layer-shell` — no
-Quickshell, no AGS, no Hyprland. It runs as a normal program on any Wayland
-compositor that speaks layer-shell, and it is built to fit Plasma in
-particular.
+<p align="center"><img src="docs/screenshots/hero.png" alt="The Atoll dashboard unfolded on a KDE Plasma desktop, showing the clock, the playing track, notifications and quick toggles"></p>
 
-![the island at rest, with a satellite while music plays](docs/screenshots/idle.png)
+<br>
+
+Atoll sits at the top edge of your screen and changes shape to show whatever
+just happened: the volume you changed, the message that arrived, the song that
+started. Click it and it unfolds into a dashboard. Hold it and Claude is there.
+When nothing is going on, it shrinks back to the clock.
+
+It is a native Qt 6 / QML application on `wlr-layer-shell` - no Quickshell, no
+AGS, no Hyprland - built to feel at home on Plasma. Every picture on this page
+was taken on a real Plasma 6 desktop, not in a mock-up.
+
+<br>
+
+## Everything at a glance
+
+<table>
+  <tr>
+    <td width="50%" valign="top">
+      <img src="docs/screenshots/idle.png" alt="The island at rest with the clock and the cover of the playing track">
+      <h3>At rest</h3>
+      The clock, the cover of whatever is playing and a dot for anything waiting. A small satellite buds off while music plays.
+    </td>
+    <td width="50%" valign="top">
+      <img src="docs/screenshots/osd.png" alt="The island showing the volume at 95 percent">
+      <h3>Volume and brightness</h3>
+      Anything Plasma announces - volume, brightness, microphone, keyboard layout - appears right where you are looking.
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" valign="top">
+      <img src="docs/screenshots/focus.png" alt="A focus session counting down on the island">
+      <h3>Focus</h3>
+      A focus timer with breaks, gentle audio and a quiet mode for notifications, counting down on the island.
+    </td>
+    <td width="50%" valign="top">
+      <img src="docs/screenshots/question.png" alt="Claude asking which editor to set up, with the answers as buttons">
+      <h3>Questions, as buttons</h3>
+      When Claude needs a decision, the answers arrive as buttons on the island. One tap, and it carries on.
+    </td>
+  </tr>
+</table>
+
+<br>
+
+## The dashboard
+
+Click the island and it unfolds. The clock and the date sit at the top, then
+whatever is playing with a seekable bar and its transport, then the
+notifications you have not dealt with, then a row of toggles.
+
+Which transport buttons are there is yours to choose under **Settings → Media**:
+shuffle, previous, play/pause, next and repeat, in that order, with the classic
+three shown when you have never said otherwise (`media.transportButtons`).
+
+It also carries the audio output you are listening on, the Bluetooth devices
+you use, and a **Focus** tile that starts a session with one click.
+
+<br>
+
+## Claude, on your island
+
+<p align="center"><img src="docs/screenshots/assistant.png" alt="The assistant open at the top of the screen, with the edges of the display glowing"></p>
+
+Press and hold the island. The edges of the screen light up, and a box opens
+asking what you want.
+
+You can ask it things ("why is my fan so loud", "what is taking up my disk"),
+and you can ask it to *do* things ("install Firefox and make it the default",
+"update my system", "set my wallpaper to that photo from Tuesday"). It works on
+this machine, with the tools it has been given: run a command, read and write
+files, install packages, change a Plasma setting, open an app, take a look at
+the screen.
+
+Every action it wants to take is sorted into reads, changes to your session and
+administrator work - and the last two ask first. Root steps always go through
+your desktop's own polkit dialog. [How the permission gate works](#it-asks-before-it-acts).
+
+<br>
+
+## The Claude Office
+
+<p align="center"><img src="docs/screenshots/office.png" alt="A pixel-art office in the island, with the lead Claude agent working at its desk"></p>
+
+Run Claude Code in a terminal and a tiny office opens inside the island. Every
+session gets a desk, and every subagent joins it. They type, read and run
+commands at their desks, drift off for coffee or the lounge when they are on a
+break, cheer when a turn goes well, and line up in front of your door when they
+have a question - which you can answer right there on the island.
+
+The office listens to Claude Code's hooks through a silent, zero-token hook.
+Connect it once:
+
+```sh
+atoll-claude-hooks "$(command -v atoll)" ~/.claude/settings.json
+```
+
+Open it with a middle click, or give it any trigger or shortcut you like under
+**Settings → Controls**. How it works: [docs/office.md](docs/office.md).
+
+<br>
+
+## Controls
+
+<p align="center"><img src="docs/screenshots/settings-controls.png" alt="The Controls page of the settings window, assigning an action to every click and scroll" width="760"></p>
+
+Every way of telling the island to do something lives on one page. Click,
+double click, middle click, right click, press and hold, scroll up, scroll down
+and resting the pointer can each carry **any** action: open the dashboard, open
+the Claude office, ask the assistant, play or skip, change the volume, start a
+focus session, toggle do-not-disturb, or open the settings.
+
+Each action can also get a **system-wide keyboard shortcut**, recorded right on
+the page. Shortcuts are registered with KDE's global shortcut service, so they
+work in every app and appear under *System Settings → Shortcuts → Atoll* as
+well. The full list of triggers and actions is in [docs/controls.md](docs/controls.md).
+
+<br>
+
+## Settings that stay out of the way
+
+The settings window edits the same file the island watches, so every change
+lands on the island as you make it. There is no apply button.
+
+<table>
+  <tr>
+    <td width="50%"><img src="docs/screenshots/settings-placement.png" alt="Placement settings: island shape, monitors and position"></td>
+    <td width="50%"><img src="docs/screenshots/settings-appearance.png" alt="Appearance settings: accent, background and edges"></td>
+  </tr>
+  <tr>
+    <td align="center"><b>Placement</b><br>Notch or pill, which monitors, which corner.</td>
+    <td align="center"><b>Appearance</b><br>Accent from the album art, colours, edges and motion.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="docs/screenshots/settings-media.png" alt="Media settings: audio outputs and the hover player"></td>
+    <td width="50%"><img src="docs/screenshots/settings-ai.png" alt="Assistant settings: provider, sign-in and permissions"></td>
+  </tr>
+  <tr>
+    <td align="center"><b>Media</b><br>Audio outputs, the hover player, lyrics.</td>
+    <td align="center"><b>Assistant</b><br>Claude Code, the Claude API, Gemini or OpenRouter.</td>
+  </tr>
+</table>
+
+Open it with a right click on the island, the gear in the dashboard,
+`atollctl settings` or `atoll --settings`. <kbd>Ctrl</kbd>+<kbd>F</kbd> searches
+every page.
+
+<br>
+
+## Install
+
+### Arch, in one go
+
+```sh
+git clone https://github.com/jojo2k7/atoll.git
+cd atoll
+./scripts/install.sh
+```
+
+That installs what is missing, builds, installs into `/usr` and starts the
+island as a user service, so it comes back with every login. It asks before it
+installs the optional extras, and the only step it runs as root is the install
+itself.
+
+From the AUR, once it is published there: `yay -S atoll` for a release, or
+`yay -S atoll-git` to follow the development branch. Both PKGBUILDs live in
+[`packaging/`](packaging).
+
+### By hand
+
+Dependencies: `qt6-base qt6-declarative qt6-svg layer-shell-qt kcoreaddons ki18n dbus wayland`,
+plus `cmake ninja qt6-shadertools extra-cmake-modules wayland` to build
+(`wayland-scanner` generates the lock-screen protocol; without it everything
+else still builds).
+Optional: `kglobalaccel` for system-wide shortcuts, `claude-code` for the assistant, `cava` for a real spectrum,
+`wireplumber` for volume control, `openssl` for encrypted sharing (see
+[Sharing files](#sharing-files)), `polkit` and a polkit agent so the assistant
+can ask for administrator rights, `libsecret` to keep an API key in your
+keyring, and `xdg-desktop-portal-kde` to let it look at your screen.
+
+```sh
+cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr
+cmake --build build
+sudo cmake --install build
+```
+
+Start it with `atoll`, or enable the bundled user service:
+
+```sh
+systemctl --user enable --now atoll.service
+```
+
+Two things are worth doing from an installed copy rather than a build
+directory: the lock screen (see [below](#on-the-lock-screen)) and the
+assistant, whose permission gate is the installed binary itself.
+
+<br>
+
+---
+
+<br>
+
+# In depth
 
 ## What it does
 
 | State | What you see |
 |---|---|
-| **Idle** | The clock, the cover of whatever is playing and dots for anything waiting - each of those is a switch, so the pill can carry the day and date instead, or nothing but the time. A satellite blob buds off it while music plays. Green, amber and violet dots join them while an application holds the camera, the microphone or your screen. |
+| **Idle** | The clock, the cover of whatever is playing and a dot for anything waiting - the island always has something to show. A satellite blob buds off it while music plays. |
 | **OSD** | Volume, brightness, microphone, keyboard layout, power profile — anything Plasma announces. |
-| **Notification** | App icon or image, summary and body, with a progress bar for the notifications that carry one. Click it and the app that sent it comes forward - Discord lands you back in the conversation, like a Plasma popup does. |
+| **Notification** | App icon or image, summary and body, with a progress bar for the notifications that carry one. |
 | **Media** | Album art, scrolling title, album, spectrum, and transport controls that fade in on hover. While synced lyrics exist, the second line becomes the words being sung. |
 | **Expanded** | Clock, battery, seekable transport, a scrolling lyrics panel, notification history and quick toggles, on one tab - and today's calendar on the other. |
 | **Calendar** | Point Atoll at an ICS feed and the dashboard's second tab fills with today's events. The pill mentions the next one when it is less than an hour away. |
@@ -51,11 +250,6 @@ and it does not replace Plasma's OSD:
   keeps doing its job; Atoll mirrors it. Pairing each observed `Notify` call
   with its reply also recovers the id the daemon handed out, which is what
   makes closing a notification from the island possible.
-- **Camera, microphone and screen use** are read off the PipeWire graph: the
-  links between an application's capture streams and what they drink from say
-  who is recording you, and through which device. Nothing polls; the registry
-  pushes every change. Sink monitors are ignored, so a visualiser reading
-  your desktop audio lights nothing.
 - **Media** is plain MPRIS2, so Spotify, a browser tab and a local player all
   reach the island the same way: title, artist, album, cover art and position.
   Remote cover art (Spotify hands out an https URL) is fetched once and cached.
@@ -84,68 +278,12 @@ whatever Plasma has there. All three parts of that are settings.
 - **Position** - any of the six edge positions, with margins.
 - **Stacking** - which compositor layer to sit on, and whether to cover panels
   or make room for them.
+- **Visibility** - always there, stepping aside while an application window
+  has the focus ("dodge windows", which loads a small KWin helper script only
+  while it is chosen), or hidden whenever it is at rest. A hidden island comes
+  back as soon as the pointer reaches the edge.
 
-## Installing
-
-### Arch, in one go
-
-```sh
-git clone https://github.com/jojo2k7/atoll.git
-cd atoll
-./scripts/install.sh
-```
-
-That installs what is missing, builds, installs into `/usr` and starts the
-island as a user service, so it comes back with every login. It asks before it
-installs the optional extras, and the only step it runs as root is the install
-itself.
-
-From the AUR, once it is published there: `yay -S atoll` for a release, or
-`yay -S atoll-git` to follow the development branch. Both PKGBUILDs live in
-[`packaging/`](packaging).
-
-### By hand
-
-Dependencies: `qt6-base qt6-declarative qt6-svg layer-shell-qt kcoreaddons ki18n dbus wayland`,
-plus `cmake ninja qt6-shadertools extra-cmake-modules wayland` to build
-(`wayland-scanner` generates the lock-screen protocol; without it everything
-else still builds).
-Optional: `claude-code` for the assistant, `cava` for a real spectrum,
-`wireplumber` for volume control, `libpipewire` for the privacy indicators,
-`openssl` for encrypted sharing (see
-[Sharing files](#sharing-files)), `polkit` and a polkit agent so the assistant
-can ask for administrator rights, `libsecret` to keep an API key in your
-keyring, and `xdg-desktop-portal-kde` to let it look at your screen.
-
-```sh
-cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr
-cmake --build build
-sudo cmake --install build
-```
-
-Start it with `atoll`, or enable the bundled user service:
-
-```sh
-systemctl --user enable --now atoll.service
-```
-
-Two things are worth doing from an installed copy rather than a build
-directory: the lock screen (see [below](#on-the-lock-screen)) and the
-assistant, whose permission gate is the installed binary itself.
-
-## The dashboard
-
-Click the island and it unfolds. The clock and the date sit at the top, then
-whatever is playing with a seekable bar and its transport, then the
-notifications you have not dealt with, then a row of toggles.
-
-![the dashboard, with the media card, the notification backlog and the toggles](docs/screenshots/expanded.png)
-
-Which transport buttons are there is yours to choose under **Settings → Media**:
-shuffle, previous, play/pause, next and repeat, in that order, with the classic
-three shown when you have never said otherwise (`media.transportButtons`).
-
-### Calendar
+## Calendar
 
 The dashboard has a second tab, and what fills it is any ICS feed you point
 Atoll at. Google Calendar, iCloud, Nextcloud and Outlook all publish one;
@@ -153,8 +291,6 @@ Atoll at. Google Calendar, iCloud, Nextcloud and Outlook all publish one;
 timer and parsed on this machine - repeating events, exceptions and all-day
 events included. The tab is there whether or not you have added a feed; turn
 `modules.calendar` off and it goes away.
-
-![the dashboard on its calendar tab, listing today's events](docs/screenshots/calendar.png)
 
 Add feeds under **Settings → Calendar**, or write them into the config:
 
@@ -177,19 +313,7 @@ Add feeds under **Settings → Calendar**, or write them into the config:
 Nothing is written back to the calendar: the feeds are read-only to Atoll, and
 an ICS URL is all it ever asks for.
 
-## The assistant
-
-Press and hold the island. The edges of the screen light up, and a box opens
-asking what you want.
-
-![the assistant asking before it runs something as administrator](docs/screenshots/assistant.png)
-
-You can ask it things ("why is my fan so loud", "what is taking up my disk"),
-and you can ask it to *do* things ("install Firefox and make it the default",
-"update my system", "set my wallpaper to that photo from Tuesday"). It works on
-this machine, with the tools it has been given: run a command, read and write
-files, install packages, change a Plasma setting, open an app, take a look at
-the screen.
+## The assistant in detail
 
 ### It asks before it acts
 
@@ -243,8 +367,6 @@ to it. It arrives as a line of text with the answers underneath it as buttons,
 and the one it would recommend is the one that looks like the answer. Tap one
 and it carries on with what you said; **Never mind** closes the question, which
 the assistant is told about and works around.
-
-![the assistant asking which editor to set up, with the answers as buttons on the island](docs/screenshots/assistant-question.png)
 
 A script of your own can put the same question up with
 `atollctl choose "Which one?" "This" "That"`, which prints back whichever
@@ -328,6 +450,21 @@ has nothing to do with it, so it keeps one colour of its own.
 Turn the whole thing off with **Settings → Assistant → Assistant**, and the
 long press, the glow and every line of it go away.
 
+## Focus sessions
+
+Atoll includes a configurable focus timer with looping local audio, gentle
+notch animations, recovery after restart, lock-aware pausing, and a field for
+parking stray thoughts. Start one from the dashboard, with the `focus` action,
+or with `atollctl focus start`. Configure it under **Settings → Focus**. See
+[Focus sessions](docs/focus.md) for the details.
+
+## Audio output selection
+
+Choose the system audio output directly in the island or hover player, including
+connecting paired Bluetooth headphones and releasing them for another device.
+Output names are configurable per computer. See [audio outputs](docs/audio-outputs.md)
+for dependencies, command-line controls, and the limits of AirPods device switching.
+
 ## On the lock screen
 
 Atoll can stay visible while the screen is locked. KWin only hands the
@@ -352,16 +489,7 @@ unlocked desktop, because anybody walking past can read it:
 
 Locking the screen also collapses an open dashboard.
 
-## Settings
-
-`atoll --settings`, `atollctl settings`, a right-click on the island, or the
-gear in the dashboard opens the settings window. It runs as its own process and
-edits the same file the island watches, so every switch lands on the island as
-you flip it - there is no apply button.
-
-![the settings window](docs/screenshots/settings.png)
-
-## Controlling it
+## Scripting
 
 Atoll exposes `org.atoll.Atoll` on the session bus, which makes the island a
 general purpose heads-up display for your own scripts:
@@ -399,18 +527,9 @@ It is how the assistant asks you something when it is running as the
 command-line client, and it works just as well from a script of your own.
 
 ```sh
-atollctl assistant           # open it with an empty box
+atollctl action office       # run any action from docs/controls.md
+atollctl assistant           # open the assistant with an empty box
 ```
-
-Binding `atollctl assistant` to a key in **System Settings → Shortcuts** gives
-the assistant a shortcut of its own, for the times the island is not where the
-pointer is.
-
-Interaction: click to expand, **hold** for the assistant, right-click for the
-settings, middle-click to play/pause, scroll to change volume, hover to reveal
-transport controls. Every one of those is configurable. Scrolling changes the
-volume only while the island is at rest - with the dashboard open or the
-assistant in front, the wheel is left alone.
 
 ## Sharing files
 
@@ -474,15 +593,13 @@ while you watch. Keys you are most likely to want:
 | `appearance.accent` | `"auto"` follows the album art, or pin a colour. |
 | `effects.gooey` | The metaball merge between the island and its satellite. |
 | `notifications.ignoredApps` | Apps the island should stay quiet about. |
-| `notifications.openOnClick` | Whether clicking a notification raises or starts the app that sent it. |
-| `modules.privacy` | The camera, microphone and screen-share dots on the resting island. |
-| `modules.bluetooth` | Bluetooth power and device connections in the dashboard. |
-| `idle.*` | What the resting pill shows: clock, day and date, cover, dots, next event, privacy indicators. |
 | `media.preferred` | Player names to favour, in order. |
 | `lyrics.enabled` | Whether to look lyrics up at all. |
 | `lyrics.offsetMs` | Shifts every lyric line, for players that report position late. |
 | `sharing.autoAccept` | Take offered files without asking first. |
-| `ai.provider` | `"claude-cli"` signs in with the Claude Code client; `"anthropic"`, `"gemini"` and `"openrouter"` use an API key. |
+| `media.transportButtons` | Which of `shuffle`, `previous`, `playPause`, `next`, `repeat` the dashboard shows. |
+| `calendar.sources` | ICS feeds to read, each `{"name": ..., "url": ...}`. |
+| `ai.provider` | `"claude-cli"` signs in with the Claude Code client, `"anthropic"` and `"gemini"` use an API key. |
 | `ai.cliPath` | Where that client lives, for the installs Atoll does not find by itself. |
 | `ai.permissions.mode` | `"readonly"`, `"guarded"` or `"trusted"` - the same choice as in the settings window. |
 | `ai.screen` | Which monitor it looks at: `"ask"`, `"current"`, `"all"`, or an output name. |
@@ -509,6 +626,11 @@ is listed here, and each one is off unless the thing that needs it is on.
 - **Calendar feeds**, but only the ones you added yourself, and only while
   `modules.calendar` is on: a GET of each ICS URL every
   `calendar.fetchIntervalMinutes`. Nothing is ever sent back to them.
+- **Weather**, only while `idle.showWeather` is on (it is off by default):
+  every 15 minutes a forecast request to `api.open-meteo.com` carrying a
+  latitude and longitude. Set `weather.latitude` and `weather.longitude` and
+  that is all; without them your rough position is looked up once per start
+  from your IP address at `ipwho.is`.
 - **The assistant**, and only while you are asking it something: your question
   goes to the service you connected it to, and nothing goes anywhere while it
   sits idle. A picture of your screen goes with it only when you asked for one,
@@ -538,12 +660,9 @@ do not.
 
 ## Known limitations
 
-- Notification **actions** are best effort. As a bus observer Atoll can ask
-  Plasma's daemon to invoke one on its behalf and re-broadcast `ActionInvoked`
-  where that is not available; senders that filter on the daemon's bus name
-  will ignore both. Clicking a notification therefore also resolves the app
-  from its desktop entry - or from its name - and raises it directly, which
-  covers most senders even when the action itself goes nowhere.
+- Notification **actions** are best effort. As a bus observer Atoll can
+  re-broadcast `ActionInvoked`, but senders that filter on the daemon's bus
+  name will ignore it.
 - One island process per session. It serves every output you asked for; a
   second instance refuses to start.
 - Staying on the lock screen only works on KWin, and only for an installed

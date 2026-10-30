@@ -33,6 +33,9 @@ public:
 
     bool windowActive() const { return m_windowActive; }
 
+    /** Load the KWin helper while the island dodges windows, unload it otherwise. */
+    Q_INVOKABLE void setDodgeHelper(bool enabled);
+
     /** Claim the bus name. Returns false if another instance already has it. */
     bool registerOnBus();
 
@@ -45,7 +48,12 @@ public:
     bool registerSettingsOnBus();
 
 public Q_SLOTS:
+    /** Called by the KWin helper script: whether an application window has the focus. */
     Q_SCRIPTABLE void setWindowActive(bool active);
+    Q_SCRIPTABLE QString audioOutputs() const;
+    Q_SCRIPTABLE void selectAudioOutput(const QString &id);
+    Q_SCRIPTABLE void releaseAudio();
+    Q_SCRIPTABLE QString focus(const QString &action);
     Q_SCRIPTABLE void expand();
     Q_SCRIPTABLE void collapse();
     Q_SCRIPTABLE void toggle();
@@ -58,6 +66,9 @@ public Q_SLOTS:
     /** Put a question to the assistant, as if it had been typed on the island. */
     Q_SCRIPTABLE void ask(const QString &prompt);
     Q_SCRIPTABLE void dismiss();
+    Q_SCRIPTABLE void office();
+    /** Run any action from qml/Actions.qml, as a trigger on the island would. */
+    Q_SCRIPTABLE void action(const QString &id);
     Q_SCRIPTABLE void reloadConfig();
     Q_SCRIPTABLE void settings();
     Q_SCRIPTABLE void raise();
@@ -117,6 +128,8 @@ Q_SIGNALS:
     void collapseRequested();
     void toggleRequested();
     void dismissRequested();
+    void officeRequested();
+    void actionRequested(const QString &id);
     void textRequested(const QString &icon, const QString &text);
     void progressRequested(const QString &icon, int percent, const QString &text);
     void shareRequested(const QStringList &paths);
@@ -146,9 +159,10 @@ private:
     /** Park a caller and hand back a token to answer it with later. */
     QString park(const QString &kind);
     void sendReply(const QString &token, const QString &value);
-    void ensureKWinScriptLoaded();
 
     bool m_windowActive = false;
+    /** -1 until the first island has said what it wants. */
+    int m_dodgeHelper = -1;
     QHash<QString, OpenReview> m_reviews;
     int m_reviewCounter = 0;
 };

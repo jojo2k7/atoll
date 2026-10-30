@@ -16,11 +16,11 @@ Rectangle {
     signal committed(string value)
 
     implicitWidth: 220
-    implicitHeight: 32
-    radius: 9
+    implicitHeight: Skin.controlHeight
+    radius: Skin.radius
     color: Skin.field
-    border.width: 1
-    border.color: input.activeFocus ? Skin.accent : Skin.line
+    border.width: input.activeFocus ? 2 : 0
+    border.color: Qt.alpha(Skin.accent, 0.8)
 
     onValueChanged: if (!input.activeFocus) {
         input.text = value
@@ -37,12 +37,12 @@ Rectangle {
         clip: true
         color: Skin.text
         selectionColor: Skin.accent
-        selectedTextColor: "#101014"
+        selectedTextColor: Skin.accentText
         font.pixelSize: 12
         validator: field.validator
         selectByMouse: true
-
         onEditingFinished: field.committed(text)
+
         Keys.onEscapePressed: {
             text = field.value
             focus = false
@@ -51,12 +51,15 @@ Rectangle {
 
     Text {
         anchors.left: parent.left
-        anchors.leftMargin: 11
+        anchors.leftMargin: 10
+        anchors.right: parent.right
+        anchors.rightMargin: 10
         anchors.verticalCenter: parent.verticalCenter
+        horizontalAlignment: input.horizontalAlignment
         text: field.placeholder
         visible: input.text.length === 0 && !input.activeFocus
-        color: Skin.muted
+        color: Skin.faint
         font.pixelSize: 12
-        opacity: 0.7
+        elide: Text.ElideRight
     }
 }

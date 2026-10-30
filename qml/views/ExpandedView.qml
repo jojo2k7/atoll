@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2026 The Atoll contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 import QtQuick
+import QtQuick.Window
 import Atoll
 
 /**
@@ -28,6 +29,7 @@ Item {
     readonly property bool showingCalendar: calendarEnabled && selectedTab === 1
 
     signal collapseRequested()
+    signal focusRequested()
 
     // The view is built fresh each time the island opens, which makes it the
     // natural moment to catch up on whatever BlueZ has been doing.
@@ -81,7 +83,7 @@ Item {
             // ---- header -------------------------------------------------------
             Item {
                 width: parent.width
-                height: 40
+                height: 52
 
                 Column {
                     anchors.left: parent.left
@@ -104,7 +106,18 @@ Item {
                     }
                 }
 
+                FocusTile {
+                    width: Math.min(148, parent.width * 0.4)
+                    height: 48
+                    anchors.right: parent.right
+                    anchors.rightMargin: batteryStatus.visible ? 44 : 0
+                    anchors.verticalCenter: parent.verticalCenter
+                    visible: !App.lock.locked
+                    onClicked: view.focusRequested()
+                }
+
                 Item {
+                    id: batteryStatus
                     visible: App.battery.present && (Cfg.modules.battery ?? true)
                     anchors.right: parent.right
                     anchors.verticalCenter: parent.verticalCenter
@@ -186,6 +199,11 @@ Item {
                         }
                     }
                 }
+            }
+
+            AudioOutputPicker {
+                width: parent.width
+                visible: !view.showingCalendar && !App.lock.locked
             }
 
             // ---- now playing --------------------------------------------------

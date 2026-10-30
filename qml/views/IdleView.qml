@@ -73,8 +73,8 @@ Item {
     implicitHeight: Cfg.collapsedHeight
     implicitWidth: Cfg.idleMode === "hidden"
                    ? 0
-                   : Math.max(Cfg.collapsedWidth,
-                              content.implicitWidth + Math.max(28, Theme.edgeInset * 2))
+                   : Math.max(Cfg.fitCollapsedContent ? Cfg.collapsedHeight : Cfg.collapsedWidth,
+                              content.implicitWidth + Math.max(Cfg.collapsedPadding * 2, Theme.edgeInset * 2))
 
     Row {
         id: content
@@ -128,7 +128,7 @@ Item {
         Text {
             visible: view.showCalendarHint
             anchors.verticalCenter: parent.verticalCenter
-            width: 80
+            width: Math.min(80, implicitWidth)
             text: {
                 if (!App.calendar || !App.calendar.hasEvents) return ""
                 const ev = App.calendar.nextEvent

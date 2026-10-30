@@ -42,12 +42,6 @@ SettingsPage {
             defaultValue: true
         }
 
-        BoolSetting {
-            label: qsTr("Open the app when clicked")
-            description: qsTr("Clicking a notification raises the application that sent it, or starts one if none is running. The default action still goes to the app first, so on Plasma's daemon chat clients land you in the conversation itself.")
-            key: "notifications.openOnClick"
-            defaultValue: true
-        }
 
         BoolSetting {
             label: qsTr("Do not disturb")

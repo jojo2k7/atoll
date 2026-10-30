@@ -68,6 +68,14 @@ public:
 
     static QVariantMap defaults();
 
+    /**
+     * Read the keys of configs older than the Controls page into "controls",
+     * in place, where the user file does not already set the new key. Applied
+     * to the user's own tree before the defaults go underneath it; the file on
+     * disk is left alone. See docs/controls.md.
+     */
+    static void migrate(QVariantMap &user);
+
 Q_SIGNALS:
     void changed();
 

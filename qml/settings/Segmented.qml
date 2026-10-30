@@ -3,8 +3,8 @@
 import QtQuick
 import Atoll
 
-/** A row of pills, one of which is the current value. */
-Row {
+/** A segmented control: one track, with a thumb that slides to the value. */
+Rectangle {
     id: control
 
     /** [{ value: "top", label: "Top" }] */
@@ -13,45 +13,88 @@ Row {
 
     signal picked(var value)
 
-    spacing: 4
+    readonly property int currentIndex: {
+        for (let i = 0; i < options.length; ++i) {
+            if (options[i].value === current) {
+                return i
+            }
+        }
+        return -1
+    }
 
-    Repeater {
-        model: control.options
+    implicitWidth: segments.implicitWidth + 4
+    implicitHeight: Skin.controlHeight
+    radius: Skin.radius
+    color: Skin.field
 
-        delegate: Rectangle {
-            required property var modelData
+    Rectangle {
+        readonly property Item target: control.currentIndex >= 0 ? segments.children[control.currentIndex] ?? null : null
 
-            readonly property bool active: modelData.value === control.current
+        visible: target !== null
+        x: 2 + (target ? target.x : 0)
+        y: 2
+        width: target ? target.width : 0
+        height: parent.height - 4
+        radius: Skin.radius - 2
+        color: Skin.controlHover
 
-            width: Math.max(56, caption.implicitWidth + 22)
-            height: 30
-            radius: 9
-            color: active ? Skin.accent : (hover.hovered ? Skin.cardHover : "#22222a")
-            border.width: 1
-            border.color: active ? Qt.lighter(Skin.accent, 1.1) : Skin.line
+        Behavior on x {
+            NumberAnimation {
+                duration: 180
+                easing.type: Easing.OutCubic
+            }
+        }
+        Behavior on width {
+            NumberAnimation {
+                duration: 180
+                easing.type: Easing.OutCubic
+            }
+        }
+    }
 
-            Behavior on color {
-                ColorAnimation {
-                    duration: 140
+    Row {
+        id: segments
+        x: 2
+        y: 2
+
+        Repeater {
+            model: control.options
+
+            delegate: Item {
+                required property var modelData
+                required property int index
+
+                readonly property bool active: index === control.currentIndex
+
+                width: Math.max(52, caption.implicitWidth + 24)
+                height: control.height - 4
+
+                Rectangle {
+                    anchors.right: parent.right
+                    anchors.verticalCenter: parent.verticalCenter
+                    width: 1
+                    height: parent.height * 0.5
+                    color: Skin.line
+                    visible: index < control.options.length - 1 && !parent.active
+                             && index + 1 !== control.currentIndex
                 }
-            }
 
-            Text {
-                id: caption
-                anchors.centerIn: parent
-                text: modelData.label
-                color: parent.active ? "#101014" : Skin.text
-                font.pixelSize: 12
-                font.weight: parent.active ? Font.DemiBold : Font.Normal
-            }
+                Text {
+                    id: caption
+                    anchors.centerIn: parent
+                    text: modelData.label
+                    color: parent.active ? Skin.text : Skin.muted
+                    font.pixelSize: 12
+                    font.weight: parent.active ? Font.DemiBold : Font.Normal
+                }
 
-            HoverHandler {
-                id: hover
-                cursorShape: Qt.PointingHandCursor
-            }
+                HoverHandler {
+                    cursorShape: Qt.PointingHandCursor
+                }
 
-            TapHandler {
-                onTapped: control.picked(modelData.value)
+                TapHandler {
+                    onTapped: control.picked(modelData.value)
+                }
             }
         }
     }

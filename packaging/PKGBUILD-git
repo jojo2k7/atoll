@@ -9,9 +9,11 @@ pkgdesc="A dynamic island for KDE Plasma (development version)"
 arch=('x86_64' 'aarch64')
 url="https://github.com/atoll-shell/atoll"
 license=('GPL-3.0-or-later')
-depends=('qt6-base' 'qt6-declarative' 'qt6-svg' 'layer-shell-qt' 'kcoreaddons' 'ki18n' 'dbus' 'wayland')
+depends=('qt6-multimedia' 'qt6-base' 'qt6-declarative' 'qt6-svg' 'layer-shell-qt' 'kcoreaddons' 'ki18n' 'kglobalaccel' 'dbus' 'wayland')
 makedepends=('git' 'cmake' 'ninja' 'qt6-shadertools' 'extra-cmake-modules' 'wayland')
-optdepends=('claude-code: the assistant, signed in with your own account instead of an API key'
+optdepends=('libpulse: audio output selection through pactl (also with pipewire-pulse)'
+            'bluez: connecting and releasing paired Bluetooth headphones'
+            'claude-code: the assistant, signed in with your own account instead of an API key'
             'cava: real spectrum analysis instead of the synthetic one'
             'wireplumber: volume control from the island'
             'kde-cli-tools: launching apps from notifications'

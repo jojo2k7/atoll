@@ -4,13 +4,15 @@ import QtQuick
 import QtQuick.Controls.Basic
 import Atoll
 
-/** A scrollable page of setting groups, with its own heading. */
+/** A scrollable page of setting groups, under its icon and heading. */
 Flickable {
     id: page
 
     default property alias content: column.data
     property string title: ""
     property string description: ""
+    property string glyph: ""
+    property color tint: Skin.control
 
     contentWidth: width
     contentHeight: column.implicitHeight + Skin.pagePadding * 2
@@ -23,30 +25,43 @@ Flickable {
 
     Column {
         id: column
-        x: Skin.pagePadding
-        y: Skin.pagePadding
-        width: page.width - Skin.pagePadding * 2 - 8
-        spacing: 18
+        x: Math.max(Skin.pagePadding, (page.width - 680) / 2)
+        y: Skin.pagePadding - 8
+        width: Math.min(680, page.width - Skin.pagePadding * 2)
+        spacing: 22
 
-        Column {
+        Row {
             width: parent.width
-            spacing: 4
+            spacing: 14
             visible: page.title.length > 0
 
-            Text {
-                text: page.title
-                color: Skin.text
-                font.pixelSize: 22
-                font.weight: Font.DemiBold
+            IconTile {
+                anchors.top: parent.top
+                size: 44
+                glyph: page.glyph
+                tint: page.tint
+                visible: page.glyph.length > 0
             }
 
-            Text {
-                width: parent.width
-                text: page.description
-                visible: text.length > 0
-                color: Skin.muted
-                font.pixelSize: 13
-                wrapMode: Text.WordWrap
+            Column {
+                width: parent.width - (page.glyph.length > 0 ? 58 : 0)
+                spacing: 3
+
+                Text {
+                    text: page.title
+                    color: Skin.text
+                    font.pixelSize: 22
+                    font.weight: Font.Bold
+                }
+
+                Text {
+                    width: parent.width
+                    text: page.description
+                    visible: text.length > 0
+                    color: Skin.muted
+                    font.pixelSize: 12
+                    wrapMode: Text.WordWrap
+                }
             }
         }
     }

@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2026 The Atoll contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 import QtQuick
+import QtQuick.Shapes
 import Atoll
 
 /**
@@ -81,6 +82,7 @@ Item {
 
     // ---- state -----------------------------------------------------------
     property bool expanded: false
+    property bool focusExpanded: false
     property bool notificationSticky: false
     property var currentNotification: ({})
 
@@ -95,6 +97,9 @@ Item {
     /** Still working, but out of the way: only the pill reports it. */
     readonly property bool aiInBackground: aiEnabled && App.ai.background && App.ai.busy
 
+    /** The Claude Code office (docs/office-v2.md): right below the assistant. */
+    readonly property bool officeActive: App.office.open && !locked
+
     readonly property bool hasMedia: App.media.active !== null && (Cfg.modules.media ?? true)
     /** A drag hovering the island, or a transfer in either direction. */
     readonly property bool sharingEnabled: Cfg.modules.sharing ?? true
@@ -102,6 +107,7 @@ Item {
     readonly property bool sharing: sharingEnabled && (dragActive || App.share.state !== "idle")
     readonly property bool mediaPlaying: hasMedia && App.media.active.playing
     readonly property bool hovered: hoverHandler.hovered
+    readonly property bool cleanSurface: mode === "focusDetail" || (mode === "media" && hovered) || mode === "office"
 
     // ---- lock screen -----------------------------------------------------
     //
@@ -113,6 +119,8 @@ Item {
     readonly property bool lockedQuiet: locked && !(Cfg.lockScreen.showNotifications ?? false)
     readonly property bool lockedNoMedia: locked && !(Cfg.lockScreen.showMedia ?? true)
     readonly property bool canExpand: !locked || (Cfg.lockScreen.allowExpanding ?? false)
+    /** Views with buttons of their own, which the pointer triggers stay out of. */
+    readonly property bool ownButtons: mode === "ai" || mode === "office" || mode === "share" || mode === "focusDetail"
 
     /**
      * Priority order, highest first. An OSD outranks a notification because it
@@ -124,11 +132,15 @@ Item {
         if (aiActive) {
             return "ai"
         }
+        if (officeActive) {
+            return "office"
+        }
         // Sharing is next: it is either a drag the user is holding over the
         // island right now, or a stranger waiting for an answer.
         if (sharing) {
             return "share"
         }
+        if (focusExpanded && !locked) return "focusDetail"
         if (expanded) {
             return "expanded"
         }
@@ -144,9 +156,10 @@ Item {
         if (mediaTimer.running && !lockedNoMedia) {
             return "media"
         }
-        if (hovered && hasMedia && !lockedNoMedia && (Cfg.behavior.hoverPeek ?? true)) {
+        if (hovered && hasMedia && !lockedNoMedia && Cfg.control("hover") === "peek") {
             return "media"
         }
+        if (App.focus.state.active) return "focus"
         return "idle"
     }
 
@@ -157,13 +170,15 @@ Item {
     // ready to emerge, which is what makes the separation read as budding off.
     property real satelliteGap: satelliteVisible ? 9 : -Cfg.collapsedHeight
 
-    width: Math.max(0, Math.min(mode === "ai" ? Cfg.maxAiWidth : Cfg.maxWidth, stack.contentWidth))
+    width: Math.max(0, Math.min(mode === "office" ? officeMaxWidth
+                                : (mode === "ai" ? Cfg.maxAiWidth : Cfg.maxWidth), stack.contentWidth))
+    readonly property real officeMaxWidth: 0.94 * (targetWindow && targetWindow.screen ? targetWindow.screen.width : 1920)
     height: Math.max(0, stack.contentHeight)
 
     Behavior on width {
         SpringAnimation {
             spring: Cfg.spring
-            damping: Cfg.damping
+            damping: island.cleanSurface ? 0.86 : Cfg.damping
             mass: 1.0
             epsilon: 0.25
         }
@@ -171,7 +186,7 @@ Item {
     Behavior on height {
         SpringAnimation {
             spring: Cfg.spring
-            damping: Cfg.damping
+            damping: island.cleanSurface ? 0.86 : Cfg.damping
             mass: 1.0
             epsilon: 0.25
         }
@@ -221,18 +236,45 @@ Item {
         id: leaveTimer
         interval: 420
         onTriggered: {
-            if (island.expanded && !island.hovered && (Cfg.behavior.collapseOnLeave ?? true)) {
+            if ((island.expanded || island.focusExpanded) && !island.hovered && Cfg.collapseOnLeave
+                    && !(island.targetWindow && island.targetWindow.activeFocusItem
+                         && island.targetWindow.activeFocusItem.objectName === "focusThought")) {
                 island.expanded = false
+                island.focusExpanded = false
             }
         }
     }
 
+    // Resting the pointer runs the hover action once; "peek" is not an action
+    // but a mode of its own, worked out in `mode` above.
+    Timer {
+        id: hoverTimer
+        interval: Cfg.hoverDelay
+        onTriggered: {
+            const action = Cfg.control("hover")
+            if (!island.hovered || island.ownButtons) {
+                return
+            }
+            if (action === "expand") {
+                island.expanded = island.expanded || island.canExpand
+                return
+            }
+            island.runAction(action, "hover")
+        }
+    }
+
     onHoveredChanged: {
+        const hoverAction = Cfg.control("hover")
+        if (hovered && hoverAction !== "none" && hoverAction !== "peek") {
+            hoverTimer.restart()
+        } else {
+            hoverTimer.stop()
+        }
         if (hovered) {
             leaveTimer.stop()
             // Touching the island acknowledges whatever it was showing.
             notificationSticky = false
-        } else if (expanded) {
+        } else if (expanded || focusExpanded) {
             leaveTimer.restart()
         }
     }
@@ -262,6 +304,7 @@ Item {
             if (island.expanded || (notification.transient ?? false)) {
                 return
             }
+            if (App.focus.state.quiet && !((notification.urgency ?? 1) >= 2 && Cfg.get("focus.allowCritical", true))) return
             island.currentNotification = notification
             island.notificationSticky = (notification.urgency ?? 1) >= 2
                     && (Cfg.notifications.criticalStaysOpen ?? true)
@@ -284,18 +327,25 @@ Item {
         target: App.ipc
 
         function onExpandRequested() {
+            island.focusExpanded = false
             if (App.debugState) {
                 console.warn("atoll: ipc expand")
             }
             island.expanded = island.canExpand
         }
         function onCollapseRequested() {
+            island.focusExpanded = false
             island.expanded = false
         }
         function onToggleRequested() {
+            if (island.focusExpanded) { island.focusExpanded = false; island.expanded = false; return }
             island.expanded = !island.expanded
         }
+        function onActionRequested(id) {
+            island.runAction(id, "ipc")
+        }
         function onDismissRequested() {
+            island.focusExpanded = false
             if (island.aiActive) {
                 App.ai.dismiss()
             }
@@ -306,9 +356,18 @@ Item {
     }
 
     Connections {
+        target: App.shortcuts
+
+        function onActivated(id) {
+            island.runAction(id, "shortcut")
+        }
+    }
+
+    Connections {
         target: App.lock
 
         function onLockedChanged() {
+            if (island.locked) island.focusExpanded = false
             // Whatever was on screen belongs to the session that just went away.
             if (!island.canExpand) {
                 island.expanded = false
@@ -362,8 +421,14 @@ Item {
 
         property Component target: {
             switch (island.mode) {
+            case "focusDetail":
+                return focusDetailComponent
+            case "focus":
+                return focusComponent
             case "ai":
                 return aiComponent
+            case "office":
+                return officeComponent
             case "share":
                 return shareComponent
             case "expanded":
@@ -375,7 +440,7 @@ Item {
             case "notification":
                 return notificationComponent
             case "media":
-                return mediaComponent
+                return island.hovered ? mediaHoverComponent : mediaComponent
             default:
                 return idleComponent
             }
@@ -442,10 +507,39 @@ Item {
         }
     }
 
+    // Concave shoulders let the hover panel grow out of the screen edge.
+    Shape {
+        x: -20
+        y: Cfg.atBottom ? island.height - 20 : 0
+        width: island.width + 40
+        height: 20
+        rotation: Cfg.atBottom ? 180 : 0
+        opacity: island.notch && island.cleanSurface ? 1 : 0
+        visible: opacity > 0
+        antialiasing: true
+        Behavior on opacity { NumberAnimation { duration: Theme.fast } }
+        ShapePath {
+            strokeWidth: -1
+            fillColor: "#000000"
+            startX: 0; startY: 0
+            PathLine { x: 20; y: 0 }
+            PathLine { x: 20; y: 20 }
+            PathCubic { x: 0; y: 0; control1X: 20; control1Y: 6; control2X: 14; control2Y: 0 }
+        }
+        ShapePath {
+            strokeWidth: -1
+            fillColor: "#000000"
+            startX: island.width + 40; startY: 0
+            PathLine { x: island.width + 20; y: 0 }
+            PathLine { x: island.width + 20; y: 20 }
+            PathCubic { x: island.width + 40; y: 0; control1X: island.width + 20; control1Y: 6; control2X: island.width + 26; control2Y: 0 }
+        }
+    }
+
     // Optional hairline, drawn on top of the goo so it traces the real shape.
     Rectangle {
         anchors.fill: parent
-        visible: Theme.border
+        visible: Theme.border && !island.cleanSurface
         radius: island.cornerRadius
         topLeftRadius: island.topRadius
         topRightRadius: island.topRadius
@@ -488,7 +582,10 @@ Item {
     // takes the keyboard only while there is a text field on it, and gives it
     // straight back afterwards.
     onAiActiveChanged: if (targetWindow) {
-        App.shell.setKeyboardFocus(targetWindow, aiActive)
+        App.shell.setKeyboardFocus(targetWindow, aiActive || officeActive)
+    }
+    onOfficeActiveChanged: if (targetWindow) {
+        App.shell.setKeyboardFocus(targetWindow, aiActive || officeActive)
     }
 
     Component.onDestruction: if (targetWindow) {
@@ -525,47 +622,207 @@ Item {
         }
     }
 
-    TapHandler {
-        acceptedButtons: Qt.LeftButton
-        enabled: island.aiEnabled
-        longPressThreshold: Cfg.aiLongPress / 1000
-        onLongPressed: {
-            App.ai.engage()
-            island.expanded = false
+    /**
+     * Run one action from Actions.qml. Every trigger ends up here - pointer,
+     * global shortcut and `atollctl action` - so the mode guards stay with
+     * the handlers and this only does what the action says.
+     */
+    function runAction(id, source) {
+        if (App.debugState) {
+            console.warn("atoll: action", id, "from", source)
+        }
+        switch (id) {
+        case "none":
+        case "peek":
+            return
+        case "expand":
+            if (focusExpanded) {
+                focusExpanded = false
+                expanded = false
+                return
+            }
+            expanded = !expanded && canExpand
+            return
+        case "collapse":
+            focusExpanded = false
+            expanded = false
+            return
+        case "dismiss":
+            focusExpanded = false
+            if (aiActive) {
+                App.ai.dismiss()
+            } else if (officeActive) {
+                App.office.hide()
+            } else if (mode === "share") {
+                App.share.dismiss()
+            }
+            expanded = false
+            notificationSticky = false
+            notificationTimer.stop()
+            return
+        case "settings":
+            App.openSettings()
+            expanded = false
+            return
+        case "office":
+            App.office.toggle()
+            return
+        case "officeOrPlayPause":
+            if (App.office.active) {
+                App.office.toggle()
+            } else if (hasMedia) {
+                App.media.active.playPause()
+            }
+            return
+        case "assistant":
+            if (aiEnabled) {
+                App.ai.engage()
+                expanded = false // The assistant takes the dashboard's place.
+            }
+            return
+        case "playPause":
+            if (hasMedia) App.media.active.playPause()
+            return
+        case "next":
+            if (hasMedia) App.media.active.next()
+            return
+        case "previous":
+            if (hasMedia) App.media.active.previous()
+            return
+        case "volumeUp":
+            App.adjustVolume(Cfg.volumeStep)
+            return
+        case "volumeDown":
+            App.adjustVolume(-Cfg.volumeStep)
+            return
+        case "focus":
+            if (App.focus.state.active) {
+                App.focus.stop()
+            } else {
+                App.focus.start()
+            }
+            return
+        case "dnd":
+            App.notifications.doNotDisturb = !App.notifications.doNotDisturb
+            return
+        default:
+            console.warn("atoll: unknown action", id)
         }
     }
 
+    /** Actions that leave the island's layout alone, allowed over its own buttons. */
+    function passive(id) {
+        return ["office", "officeOrPlayPause", "playPause", "next", "previous",
+                "volumeUp", "volumeDown", "dnd", "none"].includes(id)
+    }
+
     TapHandler {
+        id: leftTap
         acceptedButtons: Qt.LeftButton
-        onTapped: {
+        // With nothing on the long press, a held click is still not a click
+        // after the usual hold interval.
+        longPressThreshold: Cfg.control("longPress") === "none"
+                            ? Qt.styleHints.mousePressAndHoldInterval / 1000
+                            : Cfg.longPressMs / 1000
+
+        onLongPressed: {
+            clickTimer.stop()
+            const action = Cfg.control("longPress")
+            if (island.ownButtons && action !== "assistant") {
+                return
+            }
+            island.runAction(action, "longPress")
+        }
+
+        /** True when the tap went to whatever the island is showing. */
+        function claimed() {
             if (island.aiInBackground) {
                 // Whatever it is doing, the user wants to see it again.
                 App.ai.bringToFront()
-                return
+                return true
             }
-            if (island.mode === "ai") {
-                return // The assistant has its own buttons.
-            }
-            if (island.mode === "share") {
-                return // The share view has its own buttons.
+            if (island.ownButtons) {
+                return true // Those views have their own buttons.
             }
             if (island.mode === "notification") {
                 island.notificationSticky = false
                 notificationTimer.stop()
+                return true
+            }
+            return false
+        }
+
+        onTapped: {
+            if (claimed()) {
+                clickTimer.stop()
                 return
             }
-            if ((Cfg.behavior.clickAction ?? "expand") === "expand" && island.canExpand) {
-                island.expanded = !island.expanded
+            // A single click only waits for a second one when the second one
+            // means something; otherwise it acts on release.
+            if (Cfg.control("doubleClick") === "none") {
+                island.runAction(Cfg.control("click"), "click")
+            } else if (clickTimer.running) {
+                clickTimer.stop()
+                island.runAction(Cfg.control("doubleClick"), "doubleClick")
+            } else {
+                clickTimer.restart()
             }
+        }
+    }
+
+    Timer {
+        id: clickTimer
+        interval: Qt.styleHints.mouseDoubleClickInterval
+        onTriggered: if (!island.ownButtons) {
+            island.runAction(Cfg.control("click"), "click")
         }
     }
 
     TapHandler {
         acceptedButtons: Qt.MiddleButton
-        onTapped: {
-            if ((Cfg.behavior.middleClickAction ?? "playPause") === "playPause" && island.hasMedia) {
-                App.media.active.playPause()
+
+        // Whether this press/release pair was routed to the office rather
+        // than to the configured action, decided fresh each press.
+        property bool officeHandled: false
+        // When the office was opened by this press, so release can tell a
+        // quick toggle-click from a long peek-hold.
+        property real pressedAt: 0
+
+        function officeAction() {
+            const action = Cfg.control("middleClick")
+            return action === "office" || (action === "officeOrPlayPause" && App.office.active)
+        }
+
+        onPressedChanged: {
+            if (!pressed) {
+                if (officeHandled && pressedAt > 0 && Date.now() - pressedAt > 350) {
+                    App.office.hide() // held past the peek threshold
+                }
+                officeHandled = false
+                pressedAt = 0
+                return
             }
+            officeHandled = officeAction()
+            if (!officeHandled) {
+                return
+            }
+            if (App.office.open) {
+                App.office.hide() // pressing again while it is already open
+            } else {
+                App.office.show()
+                pressedAt = Date.now()
+            }
+        }
+
+        onTapped: {
+            if (officeAction()) {
+                return // already handled on press/release above
+            }
+            const action = Cfg.control("middleClick")
+            if (island.ownButtons && !island.passive(action)) {
+                return
+            }
+            island.runAction(action, "middleClick")
         }
     }
 
@@ -580,29 +837,56 @@ Item {
                 App.share.dismiss()
                 return
             }
-            switch (Cfg.behavior.rightClickAction ?? "settings") {
-            case "settings":
-                App.openSettings()
-                island.expanded = false
-                break
-            case "collapse":
-                island.expanded = false
-                break
+            if (island.mode === "office") {
+                return
             }
+            island.runAction(Cfg.control("rightClick"), "rightClick")
         }
     }
 
     WheelHandler {
-        enabled: (Cfg.behavior.scrollAdjustsVolume ?? true) && island.mode !== "ai"
-                 && island.mode !== "expanded"
+        // Anything but a volume step fires once per flick of the wheel: a
+        // gesture ends after this long without another wheel event.
+        readonly property int gestureGap: 400
+        property real lastEvent: 0
+        property string lastAction: ""
+
+        enabled: (Cfg.control("scrollUp") !== "none" || Cfg.control("scrollDown") !== "none")
+                 && island.mode !== "ai" && island.mode !== "office"
+                 && island.mode !== "expanded" && island.mode !== "focusDetail"
         acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
         onWheel: event => {
-            const step = Cfg.behavior.volumeStep ?? 5
-            App.adjustVolume(event.angleDelta.y > 0 ? step : -step)
+            if (event.angleDelta.y === 0) {
+                return
+            }
+            const action = Cfg.control(event.angleDelta.y > 0 ? "scrollUp" : "scrollDown")
+            if (action === "volumeUp" || action === "volumeDown") {
+                island.runAction(action, "scroll")
+                return
+            }
+            const now = Date.now()
+            const fresh = now - lastEvent > gestureGap || action !== lastAction
+            lastEvent = now
+            lastAction = action
+            if (fresh) {
+                island.runAction(action, "scroll")
+            }
         }
     }
 
     // ---- view components -------------------------------------------------
+    Component {
+        id: focusDetailComponent
+        FocusView {
+            keyboardWindow: island.targetWindow
+            onBackRequested: { island.expanded = true; island.focusExpanded = false }
+        }
+    }
+    Component {
+        id: focusComponent
+        FocusView { compact: true }
+    }
+
     Component {
         id: idleComponent
         IdleView {}
@@ -611,6 +895,11 @@ Item {
     Component {
         id: osdComponent
         OsdView {}
+    }
+
+    Component {
+        id: mediaHoverComponent
+        MediaHoverView {}
     }
 
     Component {
@@ -635,6 +924,7 @@ Item {
         id: expandedComponent
         ExpandedView {
             onCollapseRequested: island.expanded = false
+            onFocusRequested: { island.focusExpanded = true; island.expanded = false }
         }
     }
 
@@ -655,5 +945,10 @@ Item {
     Component {
         id: warningComponent
         CallToActionView {}
+    }
+
+    Component {
+        id: officeComponent
+        OfficeView {}
     }
 }

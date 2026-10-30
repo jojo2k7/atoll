@@ -1,0 +1,2781 @@
+{
+ "version": 2,
+ "size": [
+  480,
+  270
+ ],
+ "scale": {
+  "preferred": 3,
+  "minimum": 2
+ },
+ "layers": [
+  "background",
+  "floor",
+  "wall",
+  "light_floor",
+  "shadow",
+  "objects",
+  "light",
+  "ambient",
+  "ui"
+ ],
+ "font": {
+  "file": "../fonts/monogram-extended.ttf",
+  "family": "monogram",
+  "pixelSize": 16,
+  "lineHeight": 10,
+  "capHeight": 7,
+  "advance": 6
+ },
+ "props": [
+  {
+   "id": "room",
+   "sprite": "room",
+   "x": 0,
+   "y": 0,
+   "layer": "background"
+  },
+  {
+   "id": "rug_lead",
+   "sprite": "rug_lead",
+   "x": 197,
+   "y": 70,
+   "layer": "floor"
+  },
+  {
+   "id": "rug_lounge",
+   "sprite": "rug_lounge",
+   "x": 314,
+   "y": 176,
+   "layer": "floor"
+  },
+  {
+   "id": "carpet_work",
+   "sprite": "carpet_work",
+   "x": 12,
+   "y": 132,
+   "layer": "floor"
+  },
+  {
+   "id": "mat_julius",
+   "sprite": "mat_julius",
+   "x": 393,
+   "y": 60,
+   "layer": "floor"
+  },
+  {
+   "id": "mat_entrance",
+   "sprite": "mat_entrance",
+   "x": 102,
+   "y": 248,
+   "layer": "floor"
+  },
+  {
+   "id": "upper_cabinets",
+   "sprite": "upper_cabinets",
+   "x": 60,
+   "y": 8,
+   "layer": "wall"
+  },
+  {
+   "id": "poster",
+   "sprite": "poster",
+   "x": 160,
+   "y": 12,
+   "layer": "wall"
+  },
+  {
+   "id": "window0_sky",
+   "sprite": "window_sky",
+   "x": 187,
+   "y": 13,
+   "layer": "wall",
+   "frame": "day",
+   "timeOfDay": true
+  },
+  {
+   "id": "window0",
+   "sprite": "window_frame",
+   "x": 184,
+   "y": 10,
+   "layer": "wall"
+  },
+  {
+   "id": "window1_sky",
+   "sprite": "window_sky",
+   "x": 287,
+   "y": 13,
+   "layer": "wall",
+   "frame": "day",
+   "timeOfDay": true
+  },
+  {
+   "id": "window1",
+   "sprite": "window_frame",
+   "x": 284,
+   "y": 10,
+   "layer": "wall"
+  },
+  {
+   "id": "clock",
+   "sprite": "clock_face",
+   "x": 260,
+   "y": 22,
+   "layer": "wall",
+   "clock": {
+    "hour": "clock_hour",
+    "minute": "clock_minute"
+   }
+  },
+  {
+   "id": "kanban",
+   "sprite": "kanban",
+   "x": 340,
+   "y": 12,
+   "layer": "wall"
+  },
+  {
+   "id": "julius_door",
+   "sprite": "julius_door",
+   "x": 392,
+   "y": 4,
+   "layer": "wall",
+   "frame": "closed"
+  },
+  {
+   "id": "door_lamp",
+   "sprite": "door_lamp",
+   "x": 428,
+   "y": 8,
+   "layer": "wall",
+   "frame": "free"
+  },
+  {
+   "id": "painting",
+   "sprite": "painting",
+   "x": 438,
+   "y": 10,
+   "layer": "wall"
+  },
+  {
+   "id": "wall_shelf",
+   "sprite": "wall_shelf",
+   "x": 434,
+   "y": 34,
+   "layer": "wall"
+  },
+  {
+   "id": "plant_hanging",
+   "sprite": "plant_hanging",
+   "x": 150,
+   "y": 2,
+   "layer": "wall",
+   "animation": "sway"
+  },
+  {
+   "id": "rack_shadow",
+   "sprite": "sh_rack",
+   "x": 26,
+   "y": 86,
+   "layer": "shadow"
+  },
+  {
+   "id": "server_rack",
+   "sprite": "server_rack",
+   "x": 10,
+   "y": 26,
+   "layer": "objects",
+   "z": 86,
+   "animation": "blink"
+  },
+  {
+   "id": "netcab_shadow",
+   "sprite": "sh_small",
+   "x": 51,
+   "y": 86,
+   "layer": "shadow"
+  },
+  {
+   "id": "net_cabinet",
+   "sprite": "net_cabinet",
+   "x": 41,
+   "y": 56,
+   "layer": "objects",
+   "z": 86,
+   "animation": "blink"
+  },
+  {
+   "id": "counter_shadow",
+   "sprite": "sh_counter",
+   "x": 97,
+   "y": 83,
+   "layer": "shadow"
+  },
+  {
+   "id": "counter",
+   "sprite": "counter",
+   "x": 60,
+   "y": 52,
+   "layer": "objects",
+   "z": 82
+  },
+  {
+   "id": "coffee_machine",
+   "sprite": "coffee_machine",
+   "x": 64,
+   "y": 34,
+   "layer": "objects",
+   "z": 82.2,
+   "animation": "idle"
+  },
+  {
+   "id": "coffee_steam",
+   "sprite": "steam",
+   "x": 72,
+   "y": 44,
+   "layer": "ambient",
+   "animation": "rise"
+  },
+  {
+   "id": "counter_mug",
+   "sprite": "clutter",
+   "x": 90,
+   "y": 58,
+   "layer": "objects",
+   "z": 82.3,
+   "frame": "mug_white"
+  },
+  {
+   "id": "counter_mug2",
+   "sprite": "clutter",
+   "x": 120,
+   "y": 58,
+   "layer": "objects",
+   "z": 82.3,
+   "frame": "plant_pot"
+  },
+  {
+   "id": "counter_snack",
+   "sprite": "clutter",
+   "x": 112,
+   "y": 58,
+   "layer": "objects",
+   "z": 82.3,
+   "frame": "snack"
+  },
+  {
+   "id": "fridge_shadow",
+   "sprite": "sh_fridge",
+   "x": 148,
+   "y": 85,
+   "layer": "shadow"
+  },
+  {
+   "id": "fridge",
+   "sprite": "fridge",
+   "x": 136,
+   "y": 30,
+   "layer": "objects",
+   "z": 84
+  },
+  {
+   "id": "cooler_shadow",
+   "sprite": "sh_small",
+   "x": 169,
+   "y": 85,
+   "layer": "shadow"
+  },
+  {
+   "id": "water_cooler",
+   "sprite": "water_cooler",
+   "x": 162,
+   "y": 52,
+   "layer": "objects",
+   "z": 84,
+   "animation": "bubble"
+  },
+  {
+   "id": "trash_kitchen",
+   "sprite": "trash_bin",
+   "x": 177,
+   "y": 74,
+   "layer": "objects",
+   "z": 86
+  },
+  {
+   "id": "lead_desk_shadow",
+   "sprite": "sh_lead_desk",
+   "x": 247,
+   "y": 110,
+   "layer": "shadow"
+  },
+  {
+   "id": "lead_chair",
+   "sprite": "lead_chair",
+   "x": 245,
+   "y": 88,
+   "layer": "objects",
+   "z": 87
+  },
+  {
+   "id": "lead_desk_top",
+   "sprite": "lead_desk",
+   "x": 209,
+   "y": 80,
+   "layer": "objects",
+   "z": 100
+  },
+  {
+   "id": "lead_monitor0",
+   "sprite": "monitor_back",
+   "x": 224,
+   "y": 96,
+   "layer": "objects",
+   "z": 100.5,
+   "frame": "on"
+  },
+  {
+   "id": "lead_monitor1",
+   "sprite": "monitor_back",
+   "x": 266,
+   "y": 96,
+   "layer": "objects",
+   "z": 100.5,
+   "frame": "on"
+  },
+  {
+   "id": "lead_nameplate",
+   "sprite": "clutter",
+   "x": 245,
+   "y": 98,
+   "layer": "objects",
+   "z": 100.6,
+   "frame": "nameplate"
+  },
+  {
+   "id": "lead_lamp_on",
+   "sprite": "clutter",
+   "x": 213,
+   "y": 92,
+   "layer": "objects",
+   "z": 100.6,
+   "frame": "lamp_on"
+  },
+  {
+   "id": "lead_papers",
+   "sprite": "clutter",
+   "x": 275,
+   "y": 94,
+   "layer": "objects",
+   "z": 100.6,
+   "frame": "papers"
+  },
+  {
+   "id": "lead_mug_steam",
+   "sprite": "clutter",
+   "x": 236,
+   "y": 93,
+   "layer": "objects",
+   "z": 100.6,
+   "frame": "mug_steam"
+  },
+  {
+   "id": "lead_phone",
+   "sprite": "clutter",
+   "x": 256,
+   "y": 94,
+   "layer": "objects",
+   "z": 100.6,
+   "frame": "phone"
+  },
+  {
+   "id": "plant_lead",
+   "sprite": "plant_snake",
+   "x": 290,
+   "y": 60,
+   "layer": "objects",
+   "z": 87
+  },
+  {
+   "id": "plant_lead_shadow",
+   "sprite": "sh_plant",
+   "x": 298,
+   "y": 87,
+   "layer": "shadow"
+  },
+  {
+   "id": "podA_shadow",
+   "sprite": "sh_desk_pod",
+   "x": 66,
+   "y": 188,
+   "layer": "shadow"
+  },
+  {
+   "id": "desk0",
+   "sprite": "desk",
+   "x": 24,
+   "y": 152,
+   "layer": "objects",
+   "z": 169,
+   "frame": "oak"
+  },
+  {
+   "id": "desk0_chair",
+   "sprite": "chair_front",
+   "x": 44,
+   "y": 160,
+   "layer": "objects",
+   "z": 159,
+   "frame": "teal"
+  },
+  {
+   "id": "desk0_monitor",
+   "sprite": "monitor_back",
+   "x": 44,
+   "y": 166,
+   "layer": "objects",
+   "z": 169.5,
+   "frame": "on"
+  },
+  {
+   "id": "desk0_clutter0",
+   "sprite": "clutter",
+   "x": 28,
+   "y": 160,
+   "layer": "objects",
+   "z": 169.2,
+   "frame": "cactus"
+  },
+  {
+   "id": "desk0_clutter1",
+   "sprite": "clutter",
+   "x": 57,
+   "y": 162,
+   "layer": "objects",
+   "z": 169.20999999999998,
+   "frame": "mug_red"
+  },
+  {
+   "id": "desk0_clutter2",
+   "sprite": "clutter",
+   "x": 52,
+   "y": 156,
+   "layer": "objects",
+   "z": 169.22,
+   "frame": "sticky"
+  },
+  {
+   "id": "desk1",
+   "sprite": "desk",
+   "x": 64,
+   "y": 152,
+   "layer": "objects",
+   "z": 169,
+   "frame": "oak"
+  },
+  {
+   "id": "desk1_chair",
+   "sprite": "chair_front",
+   "x": 84,
+   "y": 160,
+   "layer": "objects",
+   "z": 159,
+   "frame": "ink"
+  },
+  {
+   "id": "desk1_monitor",
+   "sprite": "monitor_back",
+   "x": 84,
+   "y": 166,
+   "layer": "objects",
+   "z": 169.5,
+   "frame": "on"
+  },
+  {
+   "id": "desk1_clutter0",
+   "sprite": "clutter",
+   "x": 97,
+   "y": 160,
+   "layer": "objects",
+   "z": 169.2,
+   "frame": "books"
+  },
+  {
+   "id": "desk1_clutter1",
+   "sprite": "clutter",
+   "x": 69,
+   "y": 161,
+   "layer": "objects",
+   "z": 169.20999999999998,
+   "frame": "figurine_robot"
+  },
+  {
+   "id": "desk1_clutter2",
+   "sprite": "clutter",
+   "x": 91,
+   "y": 164,
+   "layer": "objects",
+   "z": 169.22,
+   "frame": "coffee_cup"
+  },
+  {
+   "id": "desk2",
+   "sprite": "desk",
+   "x": 24,
+   "y": 168,
+   "layer": "objects",
+   "z": 185,
+   "frame": "oak"
+  },
+  {
+   "id": "desk2_chair",
+   "sprite": "chair_back",
+   "x": 44,
+   "y": 194,
+   "layer": "objects",
+   "z": 195,
+   "frame": "red"
+  },
+  {
+   "id": "desk2_monitor",
+   "sprite": "monitor_front",
+   "x": 44,
+   "y": 170,
+   "layer": "objects",
+   "z": 185.5,
+   "frame": "off"
+  },
+  {
+   "id": "desk2_clutter0",
+   "sprite": "clutter",
+   "x": 44,
+   "y": 183,
+   "layer": "objects",
+   "z": 185.2,
+   "frame": "keyboard"
+  },
+  {
+   "id": "desk2_clutter1",
+   "sprite": "clutter",
+   "x": 53,
+   "y": 182,
+   "layer": "objects",
+   "z": 185.20999999999998,
+   "frame": "mouse"
+  },
+  {
+   "id": "desk2_clutter2",
+   "sprite": "clutter",
+   "x": 28,
+   "y": 180,
+   "layer": "objects",
+   "z": 185.22,
+   "frame": "lamp_on"
+  },
+  {
+   "id": "desk2_clutter3",
+   "sprite": "clutter",
+   "x": 58,
+   "y": 183,
+   "layer": "objects",
+   "z": 185.23,
+   "frame": "papers_messy"
+  },
+  {
+   "id": "desk3",
+   "sprite": "desk",
+   "x": 64,
+   "y": 168,
+   "layer": "objects",
+   "z": 185,
+   "frame": "oak"
+  },
+  {
+   "id": "desk3_chair",
+   "sprite": "chair_back",
+   "x": 84,
+   "y": 194,
+   "layer": "objects",
+   "z": 195,
+   "frame": "blue"
+  },
+  {
+   "id": "desk3_monitor",
+   "sprite": "monitor_front",
+   "x": 84,
+   "y": 170,
+   "layer": "objects",
+   "z": 185.5,
+   "frame": "off"
+  },
+  {
+   "id": "desk3_clutter0",
+   "sprite": "clutter",
+   "x": 84,
+   "y": 183,
+   "layer": "objects",
+   "z": 185.2,
+   "frame": "keyboard_rgb"
+  },
+  {
+   "id": "desk3_clutter1",
+   "sprite": "clutter",
+   "x": 93,
+   "y": 182,
+   "layer": "objects",
+   "z": 185.20999999999998,
+   "frame": "mouse"
+  },
+  {
+   "id": "desk3_clutter2",
+   "sprite": "clutter",
+   "x": 98,
+   "y": 181,
+   "layer": "objects",
+   "z": 185.22,
+   "frame": "headphones"
+  },
+  {
+   "id": "desk3_clutter3",
+   "sprite": "clutter",
+   "x": 68,
+   "y": 183,
+   "layer": "objects",
+   "z": 185.23,
+   "frame": "can"
+  },
+  {
+   "id": "desk3_clutter4",
+   "sprite": "clutter",
+   "x": 72,
+   "y": 177,
+   "layer": "objects",
+   "z": 185.23999999999998,
+   "frame": "duck"
+  },
+  {
+   "id": "podB_shadow",
+   "sprite": "sh_desk_pod",
+   "x": 178,
+   "y": 188,
+   "layer": "shadow"
+  },
+  {
+   "id": "desk4",
+   "sprite": "desk",
+   "x": 136,
+   "y": 152,
+   "layer": "objects",
+   "z": 169,
+   "frame": "walnut"
+  },
+  {
+   "id": "desk4_chair",
+   "sprite": "chair_front",
+   "x": 156,
+   "y": 160,
+   "layer": "objects",
+   "z": 159,
+   "frame": "ink"
+  },
+  {
+   "id": "desk4_monitor",
+   "sprite": "monitor_back",
+   "x": 156,
+   "y": 166,
+   "layer": "objects",
+   "z": 169.5,
+   "frame": "on"
+  },
+  {
+   "id": "desk4_clutter0",
+   "sprite": "clutter",
+   "x": 169,
+   "y": 161,
+   "layer": "objects",
+   "z": 169.2,
+   "frame": "succulent"
+  },
+  {
+   "id": "desk4_clutter1",
+   "sprite": "clutter",
+   "x": 141,
+   "y": 163,
+   "layer": "objects",
+   "z": 169.20999999999998,
+   "frame": "notebook"
+  },
+  {
+   "id": "desk4_clutter2",
+   "sprite": "clutter",
+   "x": 164,
+   "y": 158,
+   "layer": "objects",
+   "z": 169.22,
+   "frame": "photo"
+  },
+  {
+   "id": "desk5",
+   "sprite": "desk",
+   "x": 176,
+   "y": 152,
+   "layer": "objects",
+   "z": 169,
+   "frame": "walnut"
+  },
+  {
+   "id": "desk5_chair",
+   "sprite": "chair_front",
+   "x": 196,
+   "y": 160,
+   "layer": "objects",
+   "z": 159,
+   "frame": "red"
+  },
+  {
+   "id": "desk5_monitor",
+   "sprite": "monitor_back",
+   "x": 196,
+   "y": 166,
+   "layer": "objects",
+   "z": 169.5,
+   "frame": "on"
+  },
+  {
+   "id": "desk5_clutter0",
+   "sprite": "clutter",
+   "x": 180,
+   "y": 160,
+   "layer": "objects",
+   "z": 169.2,
+   "frame": "pencil_cup"
+  },
+  {
+   "id": "desk5_clutter1",
+   "sprite": "clutter",
+   "x": 209,
+   "y": 163,
+   "layer": "objects",
+   "z": 169.20999999999998,
+   "frame": "mug_white"
+  },
+  {
+   "id": "desk5_clutter2",
+   "sprite": "clutter",
+   "x": 202,
+   "y": 156,
+   "layer": "objects",
+   "z": 169.22,
+   "frame": "cube"
+  },
+  {
+   "id": "desk6",
+   "sprite": "desk",
+   "x": 136,
+   "y": 168,
+   "layer": "objects",
+   "z": 185,
+   "frame": "walnut"
+  },
+  {
+   "id": "desk6_chair",
+   "sprite": "chair_back",
+   "x": 156,
+   "y": 194,
+   "layer": "objects",
+   "z": 195,
+   "frame": "blue"
+  },
+  {
+   "id": "desk6_monitor",
+   "sprite": "monitor_front",
+   "x": 156,
+   "y": 170,
+   "layer": "objects",
+   "z": 185.5,
+   "frame": "off"
+  },
+  {
+   "id": "desk6_clutter0",
+   "sprite": "clutter",
+   "x": 156,
+   "y": 183,
+   "layer": "objects",
+   "z": 185.2,
+   "frame": "keyboard"
+  },
+  {
+   "id": "desk6_clutter1",
+   "sprite": "clutter",
+   "x": 165,
+   "y": 182,
+   "layer": "objects",
+   "z": 185.20999999999998,
+   "frame": "mouse"
+  },
+  {
+   "id": "desk6_clutter2",
+   "sprite": "clutter",
+   "x": 142,
+   "y": 183,
+   "layer": "objects",
+   "z": 185.22,
+   "frame": "book_open"
+  },
+  {
+   "id": "desk6_clutter3",
+   "sprite": "clutter",
+   "x": 170,
+   "y": 177,
+   "layer": "objects",
+   "z": 185.23,
+   "frame": "mug_steam"
+  },
+  {
+   "id": "desk6_clutter4",
+   "sprite": "clutter",
+   "x": 170,
+   "y": 183,
+   "layer": "objects",
+   "z": 185.23999999999998,
+   "frame": "figurine_dino"
+  },
+  {
+   "id": "desk7",
+   "sprite": "desk",
+   "x": 176,
+   "y": 168,
+   "layer": "objects",
+   "z": 185,
+   "frame": "walnut"
+  },
+  {
+   "id": "desk7_chair",
+   "sprite": "chair_back",
+   "x": 196,
+   "y": 194,
+   "layer": "objects",
+   "z": 195,
+   "frame": "teal"
+  },
+  {
+   "id": "desk7_monitor",
+   "sprite": "monitor_front",
+   "x": 196,
+   "y": 170,
+   "layer": "objects",
+   "z": 185.5,
+   "frame": "off"
+  },
+  {
+   "id": "desk7_clutter0",
+   "sprite": "clutter",
+   "x": 196,
+   "y": 183,
+   "layer": "objects",
+   "z": 185.2,
+   "frame": "keyboard"
+  },
+  {
+   "id": "desk7_clutter1",
+   "sprite": "clutter",
+   "x": 186,
+   "y": 182,
+   "layer": "objects",
+   "z": 185.20999999999998,
+   "frame": "mouse"
+  },
+  {
+   "id": "desk7_clutter2",
+   "sprite": "clutter",
+   "x": 209,
+   "y": 182,
+   "layer": "objects",
+   "z": 185.22,
+   "frame": "plant_pot"
+  },
+  {
+   "id": "desk7_clutter3",
+   "sprite": "clutter",
+   "x": 181,
+   "y": 177,
+   "layer": "objects",
+   "z": 185.23,
+   "frame": "sticky"
+  },
+  {
+   "id": "desk7_clutter4",
+   "sprite": "clutter",
+   "x": 206,
+   "y": 176,
+   "layer": "objects",
+   "z": 185.23999999999998,
+   "frame": "glasses_case"
+  },
+  {
+   "id": "whiteboard_shadow",
+   "sprite": "sh_shelf",
+   "x": 272,
+   "y": 190,
+   "layer": "shadow"
+  },
+  {
+   "id": "whiteboard",
+   "sprite": "whiteboard",
+   "x": 250,
+   "y": 146,
+   "layer": "objects",
+   "z": 189
+  },
+  {
+   "id": "printer_shadow",
+   "sprite": "sh_medium",
+   "x": 214,
+   "y": 246,
+   "layer": "shadow"
+  },
+  {
+   "id": "printer",
+   "sprite": "printer",
+   "x": 200,
+   "y": 216,
+   "layer": "objects",
+   "z": 246,
+   "animation": "idle"
+  },
+  {
+   "id": "trash_printer",
+   "sprite": "trash_bin",
+   "x": 232,
+   "y": 236,
+   "layer": "objects",
+   "z": 246
+  },
+  {
+   "id": "ficus_shadow",
+   "sprite": "sh_plant",
+   "x": 21,
+   "y": 259,
+   "layer": "shadow"
+  },
+  {
+   "id": "plant_ficus",
+   "sprite": "plant_ficus",
+   "x": 9,
+   "y": 214,
+   "layer": "objects",
+   "z": 259,
+   "animation": "sway"
+  },
+  {
+   "id": "coat_rack",
+   "sprite": "coat_rack",
+   "x": 78,
+   "y": 216,
+   "layer": "objects",
+   "z": 259
+  },
+  {
+   "id": "coat_shadow",
+   "sprite": "sh_small",
+   "x": 87,
+   "y": 259,
+   "layer": "shadow"
+  },
+  {
+   "id": "umbrella_stand",
+   "sprite": "umbrella_stand",
+   "x": 140,
+   "y": 242,
+   "layer": "objects",
+   "z": 259
+  },
+  {
+   "id": "plant_cactus",
+   "sprite": "plant_cactus",
+   "x": 446,
+   "y": 62,
+   "layer": "objects",
+   "z": 85
+  },
+  {
+   "id": "cactus_shadow",
+   "sprite": "sh_small",
+   "x": 453,
+   "y": 85,
+   "layer": "shadow"
+  },
+  {
+   "id": "trash_pods",
+   "sprite": "trash_bin",
+   "x": 236,
+   "y": 128,
+   "layer": "objects",
+   "z": 139
+  },
+  {
+   "id": "sofa_shadow",
+   "sprite": "sh_sofa",
+   "x": 391,
+   "y": 199,
+   "layer": "shadow"
+  },
+  {
+   "id": "sofa",
+   "sprite": "sofa",
+   "x": 361,
+   "y": 168,
+   "layer": "objects",
+   "z": 190
+  },
+  {
+   "id": "table_shadow",
+   "sprite": "sh_table",
+   "x": 392,
+   "y": 223,
+   "layer": "shadow"
+  },
+  {
+   "id": "coffee_table",
+   "sprite": "coffee_table",
+   "x": 374,
+   "y": 206,
+   "layer": "objects",
+   "z": 223
+  },
+  {
+   "id": "arm_l_shadow",
+   "sprite": "sh_medium",
+   "x": 336,
+   "y": 226,
+   "layer": "shadow"
+  },
+  {
+   "id": "armchair_l",
+   "sprite": "armchair",
+   "x": 322,
+   "y": 197,
+   "layer": "objects",
+   "z": 221,
+   "frame": "right"
+  },
+  {
+   "id": "armchair_l_front",
+   "sprite": "armchair",
+   "x": 322,
+   "y": 197,
+   "layer": "objects",
+   "z": 222.5,
+   "frame": "right_front"
+  },
+  {
+   "id": "arm_r_shadow",
+   "sprite": "sh_medium",
+   "x": 449,
+   "y": 226,
+   "layer": "shadow"
+  },
+  {
+   "id": "armchair_r",
+   "sprite": "armchair",
+   "x": 436,
+   "y": 197,
+   "layer": "objects",
+   "z": 221,
+   "frame": "left"
+  },
+  {
+   "id": "armchair_r_front",
+   "sprite": "armchair",
+   "x": 436,
+   "y": 197,
+   "layer": "objects",
+   "z": 222.5,
+   "frame": "left_front"
+  },
+  {
+   "id": "lamp_shadow",
+   "sprite": "sh_small",
+   "x": 351,
+   "y": 199,
+   "layer": "shadow"
+  },
+  {
+   "id": "floor_lamp",
+   "sprite": "floor_lamp",
+   "x": 344,
+   "y": 156,
+   "layer": "objects",
+   "z": 199,
+   "frame": "on"
+  },
+  {
+   "id": "record_player",
+   "sprite": "record_player",
+   "x": 426,
+   "y": 178,
+   "layer": "objects",
+   "z": 199,
+   "animation": "spin"
+  },
+  {
+   "id": "bookshelf_shadow",
+   "sprite": "sh_shelf",
+   "x": 454,
+   "y": 168,
+   "layer": "shadow"
+  },
+  {
+   "id": "bookshelf",
+   "sprite": "bookshelf",
+   "x": 436,
+   "y": 118,
+   "layer": "objects",
+   "z": 167
+  },
+  {
+   "id": "monstera_shadow",
+   "sprite": "sh_plant",
+   "x": 314,
+   "y": 260,
+   "layer": "shadow"
+  },
+  {
+   "id": "plant_monstera",
+   "sprite": "plant_monstera",
+   "x": 300,
+   "y": 222,
+   "layer": "objects",
+   "z": 260,
+   "animation": "sway"
+  },
+  {
+   "id": "catbed_shadow",
+   "sprite": "sh_small",
+   "x": 431,
+   "y": 256,
+   "layer": "shadow"
+  },
+  {
+   "id": "cat_bed",
+   "sprite": "cat_bed",
+   "x": 420,
+   "y": 245,
+   "layer": "objects",
+   "z": 250
+  },
+  {
+   "id": "plant_snake2",
+   "sprite": "plant_snake",
+   "x": 456,
+   "y": 232,
+   "layer": "objects",
+   "z": 259
+  },
+  {
+   "id": "sill_succulent",
+   "sprite": "clutter",
+   "x": 194,
+   "y": 46,
+   "layer": "wall",
+   "frame": "succulent"
+  },
+  {
+   "id": "sill_cactus",
+   "sprite": "clutter",
+   "x": 326,
+   "y": 46,
+   "layer": "wall",
+   "frame": "cactus"
+  }
+ ],
+ "desks": [
+  {
+   "index": 0,
+   "pod": "A",
+   "facing": "down",
+   "desk": "desk0",
+   "chair": "desk0_chair",
+   "monitor": "desk0_monitor",
+   "clutter": [
+    "desk0_clutter0",
+    "desk0_clutter1",
+    "desk0_clutter2"
+   ],
+   "seat": {
+    "x": 44,
+    "y": 160,
+    "z": 160
+   },
+   "seatNode": "d0_seat",
+   "approach": "d0_in",
+   "monitorRect": [
+    34,
+    149,
+    20,
+    18
+   ],
+   "screenRect": null,
+   "glow": {
+    "sprite": "monitor_glow",
+    "x": 44,
+    "y": 156,
+    "layer": "light"
+   },
+   "label": {
+    "x": 44,
+    "y": 126
+   },
+   "bubble": {
+    "x": 53,
+    "y": 132
+   }
+  },
+  {
+   "index": 1,
+   "pod": "A",
+   "facing": "down",
+   "desk": "desk1",
+   "chair": "desk1_chair",
+   "monitor": "desk1_monitor",
+   "clutter": [
+    "desk1_clutter0",
+    "desk1_clutter1",
+    "desk1_clutter2"
+   ],
+   "seat": {
+    "x": 84,
+    "y": 160,
+    "z": 160
+   },
+   "seatNode": "d1_seat",
+   "approach": "d1_in",
+   "monitorRect": [
+    74,
+    149,
+    20,
+    18
+   ],
+   "screenRect": null,
+   "glow": {
+    "sprite": "monitor_glow",
+    "x": 84,
+    "y": 156,
+    "layer": "light"
+   },
+   "label": {
+    "x": 84,
+    "y": 126
+   },
+   "bubble": {
+    "x": 93,
+    "y": 132
+   }
+  },
+  {
+   "index": 2,
+   "pod": "A",
+   "facing": "up",
+   "desk": "desk2",
+   "chair": "desk2_chair",
+   "monitor": "desk2_monitor",
+   "clutter": [
+    "desk2_clutter0",
+    "desk2_clutter1",
+    "desk2_clutter2",
+    "desk2_clutter3"
+   ],
+   "seat": {
+    "x": 44,
+    "y": 194,
+    "z": 194.5
+   },
+   "seatNode": "d2_seat",
+   "approach": "d2_in",
+   "monitorRect": [
+    34,
+    153,
+    20,
+    18
+   ],
+   "screenRect": [
+    36,
+    154,
+    16,
+    10
+   ],
+   "glow": {
+    "sprite": "monitor_glow",
+    "x": 44,
+    "y": 160,
+    "layer": "light"
+   },
+   "label": {
+    "x": 44,
+    "y": 160
+   },
+   "bubble": {
+    "x": 57,
+    "y": 178
+   }
+  },
+  {
+   "index": 3,
+   "pod": "A",
+   "facing": "up",
+   "desk": "desk3",
+   "chair": "desk3_chair",
+   "monitor": "desk3_monitor",
+   "clutter": [
+    "desk3_clutter0",
+    "desk3_clutter1",
+    "desk3_clutter2",
+    "desk3_clutter3",
+    "desk3_clutter4"
+   ],
+   "seat": {
+    "x": 84,
+    "y": 194,
+    "z": 194.5
+   },
+   "seatNode": "d3_seat",
+   "approach": "d3_in",
+   "monitorRect": [
+    74,
+    153,
+    20,
+    18
+   ],
+   "screenRect": [
+    76,
+    154,
+    16,
+    10
+   ],
+   "glow": {
+    "sprite": "monitor_glow",
+    "x": 84,
+    "y": 160,
+    "layer": "light"
+   },
+   "label": {
+    "x": 84,
+    "y": 160
+   },
+   "bubble": {
+    "x": 97,
+    "y": 178
+   }
+  },
+  {
+   "index": 4,
+   "pod": "B",
+   "facing": "down",
+   "desk": "desk4",
+   "chair": "desk4_chair",
+   "monitor": "desk4_monitor",
+   "clutter": [
+    "desk4_clutter0",
+    "desk4_clutter1",
+    "desk4_clutter2"
+   ],
+   "seat": {
+    "x": 156,
+    "y": 160,
+    "z": 160
+   },
+   "seatNode": "d4_seat",
+   "approach": "d4_in",
+   "monitorRect": [
+    146,
+    149,
+    20,
+    18
+   ],
+   "screenRect": null,
+   "glow": {
+    "sprite": "monitor_glow",
+    "x": 156,
+    "y": 156,
+    "layer": "light"
+   },
+   "label": {
+    "x": 156,
+    "y": 126
+   },
+   "bubble": {
+    "x": 165,
+    "y": 132
+   }
+  },
+  {
+   "index": 5,
+   "pod": "B",
+   "facing": "down",
+   "desk": "desk5",
+   "chair": "desk5_chair",
+   "monitor": "desk5_monitor",
+   "clutter": [
+    "desk5_clutter0",
+    "desk5_clutter1",
+    "desk5_clutter2"
+   ],
+   "seat": {
+    "x": 196,
+    "y": 160,
+    "z": 160
+   },
+   "seatNode": "d5_seat",
+   "approach": "d5_in",
+   "monitorRect": [
+    186,
+    149,
+    20,
+    18
+   ],
+   "screenRect": null,
+   "glow": {
+    "sprite": "monitor_glow",
+    "x": 196,
+    "y": 156,
+    "layer": "light"
+   },
+   "label": {
+    "x": 196,
+    "y": 126
+   },
+   "bubble": {
+    "x": 205,
+    "y": 132
+   }
+  },
+  {
+   "index": 6,
+   "pod": "B",
+   "facing": "up",
+   "desk": "desk6",
+   "chair": "desk6_chair",
+   "monitor": "desk6_monitor",
+   "clutter": [
+    "desk6_clutter0",
+    "desk6_clutter1",
+    "desk6_clutter2",
+    "desk6_clutter3",
+    "desk6_clutter4"
+   ],
+   "seat": {
+    "x": 156,
+    "y": 194,
+    "z": 194.5
+   },
+   "seatNode": "d6_seat",
+   "approach": "d6_in",
+   "monitorRect": [
+    146,
+    153,
+    20,
+    18
+   ],
+   "screenRect": [
+    148,
+    154,
+    16,
+    10
+   ],
+   "glow": {
+    "sprite": "monitor_glow",
+    "x": 156,
+    "y": 160,
+    "layer": "light"
+   },
+   "label": {
+    "x": 156,
+    "y": 160
+   },
+   "bubble": {
+    "x": 169,
+    "y": 178
+   }
+  },
+  {
+   "index": 7,
+   "pod": "B",
+   "facing": "up",
+   "desk": "desk7",
+   "chair": "desk7_chair",
+   "monitor": "desk7_monitor",
+   "clutter": [
+    "desk7_clutter0",
+    "desk7_clutter1",
+    "desk7_clutter2",
+    "desk7_clutter3",
+    "desk7_clutter4"
+   ],
+   "seat": {
+    "x": 196,
+    "y": 194,
+    "z": 194.5
+   },
+   "seatNode": "d7_seat",
+   "approach": "d7_in",
+   "monitorRect": [
+    186,
+    153,
+    20,
+    18
+   ],
+   "screenRect": [
+    188,
+    154,
+    16,
+    10
+   ],
+   "glow": {
+    "sprite": "monitor_glow",
+    "x": 196,
+    "y": 160,
+    "layer": "light"
+   },
+   "label": {
+    "x": 196,
+    "y": 160
+   },
+   "bubble": {
+    "x": 209,
+    "y": 178
+   }
+  }
+ ],
+ "lead": {
+  "desk": "lead_desk_top",
+  "chair": "lead_chair",
+  "monitors": [
+   "lead_monitor0",
+   "lead_monitor1"
+  ],
+  "facing": "down",
+  "seat": {
+   "x": 245,
+   "y": 88,
+   "z": 88
+  },
+  "seatNode": "lead_seat",
+  "approach": "lead_behind",
+  "monitorRect": [
+   214,
+   79,
+   62,
+   18
+  ],
+  "screenRect": null,
+  "glow": {
+   "sprite": "monitor_glow",
+   "x": 245,
+   "y": 82,
+   "layer": "light"
+  },
+  "label": {
+   "x": 245,
+   "y": 54
+  },
+  "bubble": {
+   "x": 254,
+   "y": 60
+  },
+  "visitorSpots": [
+   "lead_visit0",
+   "lead_visit1"
+  ]
+ },
+ "lounge": [
+  {
+   "id": "sofa0",
+   "x": 374,
+   "y": 196,
+   "z": 196,
+   "facing": "down",
+   "node": "sofa0",
+   "poses": [
+    "lounge_relax_down",
+    "lounge_sip_down",
+    "lounge_sleep_down"
+   ]
+  },
+  {
+   "id": "sofa1",
+   "x": 392,
+   "y": 196,
+   "z": 196,
+   "facing": "down",
+   "node": "sofa1",
+   "poses": [
+    "lounge_relax_down",
+    "lounge_sip_down",
+    "lounge_sleep_down"
+   ]
+  },
+  {
+   "id": "sofa2",
+   "x": 410,
+   "y": 196,
+   "z": 196,
+   "facing": "down",
+   "node": "sofa2",
+   "poses": [
+    "lounge_relax_down",
+    "lounge_sip_down",
+    "lounge_sleep_down"
+   ]
+  },
+  {
+   "id": "armchair_l",
+   "x": 336,
+   "y": 222,
+   "z": 222,
+   "facing": "right",
+   "node": "armchair_l",
+   "front": "armchair_l_front",
+   "poses": [
+    "lounge_relax_right",
+    "lounge_sip_right",
+    "lounge_sleep_right"
+   ]
+  },
+  {
+   "id": "armchair_r",
+   "x": 448,
+   "y": 222,
+   "z": 222,
+   "facing": "left",
+   "node": "armchair_r",
+   "front": "armchair_r_front",
+   "poses": [
+    "lounge_relax_left",
+    "lounge_sip_left",
+    "lounge_sleep_left"
+   ]
+  }
+ ],
+ "standing": [
+  {
+   "id": "coffee",
+   "node": "coffee",
+   "facing": "up",
+   "activity": "coffee",
+   "pose": "idle_up",
+   "then": "drink",
+   "x": 73,
+   "y": 94
+  },
+  {
+   "id": "cooler",
+   "node": "cooler",
+   "facing": "up",
+   "activity": "water",
+   "pose": "idle_up",
+   "then": "drink",
+   "x": 169,
+   "y": 98
+  },
+  {
+   "id": "fridge",
+   "node": "fridge",
+   "facing": "up",
+   "activity": "snack",
+   "pose": "idle_up",
+   "x": 148,
+   "y": 100
+  },
+  {
+   "id": "server",
+   "node": "server",
+   "facing": "up",
+   "activity": "server",
+   "pose": "idle_up",
+   "x": 34,
+   "y": 98
+  },
+  {
+   "id": "whiteboard",
+   "node": "whiteboard",
+   "facing": "up",
+   "activity": "planning",
+   "pose": "talk_up",
+   "x": 272,
+   "y": 202
+  },
+  {
+   "id": "kanban",
+   "node": "kanban",
+   "facing": "up",
+   "activity": "planning",
+   "pose": "talk_up",
+   "x": 366,
+   "y": 76
+  },
+  {
+   "id": "window",
+   "node": "window",
+   "facing": "up",
+   "activity": "break",
+   "pose": "idle_up",
+   "then": "stretch",
+   "x": 296,
+   "y": 76
+  },
+  {
+   "id": "printer",
+   "node": "printer_spot",
+   "facing": "up",
+   "activity": "printing",
+   "pose": "idle_up",
+   "x": 214,
+   "y": 254
+  },
+  {
+   "id": "bookshelf",
+   "node": "bookshelf_spot",
+   "facing": "up",
+   "activity": "reading",
+   "pose": "idle_up",
+   "x": 454,
+   "y": 186
+  },
+  {
+   "id": "lead_visit0",
+   "node": "lead_visit0",
+   "facing": "up",
+   "activity": "talking",
+   "pose": "talk_up",
+   "x": 232,
+   "y": 124
+  },
+  {
+   "id": "lead_visit1",
+   "node": "lead_visit1",
+   "facing": "up",
+   "activity": "talking",
+   "pose": "talk_up",
+   "x": 260,
+   "y": 124
+  }
+ ],
+ "queue": [
+  {
+   "id": "queue0",
+   "node": "queue0",
+   "x": 409,
+   "y": 74,
+   "facing": "up"
+  },
+  {
+   "id": "queue1",
+   "node": "queue1",
+   "x": 397,
+   "y": 87,
+   "facing": "up"
+  },
+  {
+   "id": "queue2",
+   "node": "queue2",
+   "x": 385,
+   "y": 100,
+   "facing": "up"
+  },
+  {
+   "id": "queue3",
+   "node": "queue3",
+   "x": 373,
+   "y": 113,
+   "facing": "up"
+  }
+ ],
+ "entrance": {
+  "node": "entrance",
+  "x": 117,
+  "y": 256,
+  "offscreen": {
+   "x": 117,
+   "y": 300
+  }
+ },
+ "julius": {
+  "door": "julius_door",
+  "lamp": "door_lamp",
+  "glow": "door_glow",
+  "node": "julius"
+ },
+ "cat": {
+  "sprite": "cat",
+  "shadow": "shadow_cat",
+  "home": "cat_bed",
+  "spots": [
+   {
+    "node": "cat_bed",
+    "pose": "sleep"
+   },
+   {
+    "node": "cat_sun",
+    "pose": "sleep"
+   },
+   {
+    "node": "cat_rug",
+    "pose": "sit"
+   },
+   {
+    "node": "coffee",
+    "pose": "sit"
+   },
+   {
+    "node": "server",
+    "pose": "sit"
+   },
+   {
+    "node": "whiteboard",
+    "pose": "sit"
+   }
+  ]
+ },
+ "graph": {
+  "nodes": [
+   {
+    "id": "d0_in",
+    "x": 44,
+    "y": 120
+   },
+   {
+    "id": "d0_seat",
+    "x": 44,
+    "y": 160
+   },
+   {
+    "id": "d1_in",
+    "x": 84,
+    "y": 120
+   },
+   {
+    "id": "d1_seat",
+    "x": 84,
+    "y": 160
+   },
+   {
+    "id": "d2_in",
+    "x": 44,
+    "y": 212
+   },
+   {
+    "id": "d2_seat",
+    "x": 44,
+    "y": 194
+   },
+   {
+    "id": "d3_in",
+    "x": 84,
+    "y": 212
+   },
+   {
+    "id": "d3_seat",
+    "x": 84,
+    "y": 194
+   },
+   {
+    "id": "d4_in",
+    "x": 156,
+    "y": 120
+   },
+   {
+    "id": "d4_seat",
+    "x": 156,
+    "y": 160
+   },
+   {
+    "id": "d5_in",
+    "x": 196,
+    "y": 120
+   },
+   {
+    "id": "d5_seat",
+    "x": 196,
+    "y": 160
+   },
+   {
+    "id": "d6_in",
+    "x": 156,
+    "y": 212
+   },
+   {
+    "id": "d6_seat",
+    "x": 156,
+    "y": 194
+   },
+   {
+    "id": "d7_in",
+    "x": 196,
+    "y": 212
+   },
+   {
+    "id": "d7_seat",
+    "x": 196,
+    "y": 194
+   },
+   {
+    "id": "lead_seat",
+    "x": 245,
+    "y": 88
+   },
+   {
+    "id": "lead_behind",
+    "x": 200,
+    "y": 92
+   },
+   {
+    "id": "c_14",
+    "x": 14,
+    "y": 120
+   },
+   {
+    "id": "c_44",
+    "x": 44,
+    "y": 120
+   },
+   {
+    "id": "c_84",
+    "x": 84,
+    "y": 120
+   },
+   {
+    "id": "c_120",
+    "x": 120,
+    "y": 120
+   },
+   {
+    "id": "c_156",
+    "x": 156,
+    "y": 120
+   },
+   {
+    "id": "c_196",
+    "x": 196,
+    "y": 120
+   },
+   {
+    "id": "c_228",
+    "x": 228,
+    "y": 120
+   },
+   {
+    "id": "c_300",
+    "x": 300,
+    "y": 120
+   },
+   {
+    "id": "b_14",
+    "x": 14,
+    "y": 212
+   },
+   {
+    "id": "b_44",
+    "x": 44,
+    "y": 212
+   },
+   {
+    "id": "b_84",
+    "x": 84,
+    "y": 212
+   },
+   {
+    "id": "b_120",
+    "x": 120,
+    "y": 212
+   },
+   {
+    "id": "b_156",
+    "x": 156,
+    "y": 212
+   },
+   {
+    "id": "b_196",
+    "x": 196,
+    "y": 212
+   },
+   {
+    "id": "b_228",
+    "x": 228,
+    "y": 212
+   },
+   {
+    "id": "b_268",
+    "x": 268,
+    "y": 212
+   },
+   {
+    "id": "b_306",
+    "x": 306,
+    "y": 212
+   },
+   {
+    "id": "server",
+    "x": 34,
+    "y": 98
+   },
+   {
+    "id": "coffee",
+    "x": 73,
+    "y": 94
+   },
+   {
+    "id": "fridge",
+    "x": 148,
+    "y": 100
+   },
+   {
+    "id": "cooler",
+    "x": 169,
+    "y": 98
+   },
+   {
+    "id": "lead_visit0",
+    "x": 232,
+    "y": 124
+   },
+   {
+    "id": "lead_visit1",
+    "x": 260,
+    "y": 124
+   },
+   {
+    "id": "window",
+    "x": 296,
+    "y": 76
+   },
+   {
+    "id": "hall",
+    "x": 346,
+    "y": 104
+   },
+   {
+    "id": "kanban",
+    "x": 366,
+    "y": 76
+   },
+   {
+    "id": "queue0",
+    "x": 409,
+    "y": 74
+   },
+   {
+    "id": "queue1",
+    "x": 397,
+    "y": 87
+   },
+   {
+    "id": "queue2",
+    "x": 385,
+    "y": 100
+   },
+   {
+    "id": "queue3",
+    "x": 373,
+    "y": 113
+   },
+   {
+    "id": "julius",
+    "x": 409,
+    "y": 62
+   },
+   {
+    "id": "whiteboard",
+    "x": 272,
+    "y": 202
+   },
+   {
+    "id": "lounge_in",
+    "x": 306,
+    "y": 160
+   },
+   {
+    "id": "lounge_w",
+    "x": 318,
+    "y": 240
+   },
+   {
+    "id": "sofa_front",
+    "x": 356,
+    "y": 206
+   },
+   {
+    "id": "lounge_s",
+    "x": 392,
+    "y": 246
+   },
+   {
+    "id": "lounge_e",
+    "x": 462,
+    "y": 214
+   },
+   {
+    "id": "bookshelf_spot",
+    "x": 454,
+    "y": 186
+   },
+   {
+    "id": "entry_in",
+    "x": 117,
+    "y": 228
+   },
+   {
+    "id": "entrance",
+    "x": 117,
+    "y": 256
+   },
+   {
+    "id": "printer_spot",
+    "x": 214,
+    "y": 254
+   },
+   {
+    "id": "printer_way",
+    "x": 176,
+    "y": 236
+   },
+   {
+    "id": "sofa0",
+    "x": 374,
+    "y": 196
+   },
+   {
+    "id": "sofa1",
+    "x": 392,
+    "y": 196
+   },
+   {
+    "id": "sofa2",
+    "x": 410,
+    "y": 196
+   },
+   {
+    "id": "armchair_l",
+    "x": 336,
+    "y": 222
+   },
+   {
+    "id": "armchair_r",
+    "x": 448,
+    "y": 222
+   },
+   {
+    "id": "cat_bed",
+    "x": 431,
+    "y": 252
+   },
+   {
+    "id": "cat_sun",
+    "x": 236,
+    "y": 150
+   },
+   {
+    "id": "cat_rug",
+    "x": 392,
+    "y": 234
+   }
+  ],
+  "edges": [
+   [
+    "d0_in",
+    "d0_seat"
+   ],
+   [
+    "d1_in",
+    "d1_seat"
+   ],
+   [
+    "d2_in",
+    "d2_seat"
+   ],
+   [
+    "d3_in",
+    "d3_seat"
+   ],
+   [
+    "d4_in",
+    "d4_seat"
+   ],
+   [
+    "d5_in",
+    "d5_seat"
+   ],
+   [
+    "d6_in",
+    "d6_seat"
+   ],
+   [
+    "d7_in",
+    "d7_seat"
+   ],
+   [
+    "lead_behind",
+    "lead_seat"
+   ],
+   [
+    "c_14",
+    "c_44"
+   ],
+   [
+    "c_44",
+    "c_84"
+   ],
+   [
+    "c_84",
+    "c_120"
+   ],
+   [
+    "c_120",
+    "c_156"
+   ],
+   [
+    "c_156",
+    "c_196"
+   ],
+   [
+    "c_196",
+    "c_228"
+   ],
+   [
+    "c_228",
+    "c_300"
+   ],
+   [
+    "b_14",
+    "b_44"
+   ],
+   [
+    "b_44",
+    "b_84"
+   ],
+   [
+    "b_84",
+    "b_120"
+   ],
+   [
+    "b_120",
+    "b_156"
+   ],
+   [
+    "b_156",
+    "b_196"
+   ],
+   [
+    "b_196",
+    "b_228"
+   ],
+   [
+    "b_228",
+    "b_268"
+   ],
+   [
+    "b_268",
+    "b_306"
+   ],
+   [
+    "c_14",
+    "b_14"
+   ],
+   [
+    "c_120",
+    "b_120"
+   ],
+   [
+    "c_228",
+    "b_228"
+   ],
+   [
+    "d0_in",
+    "c_44"
+   ],
+   [
+    "d1_in",
+    "c_84"
+   ],
+   [
+    "d2_in",
+    "b_44"
+   ],
+   [
+    "d3_in",
+    "b_84"
+   ],
+   [
+    "d4_in",
+    "c_156"
+   ],
+   [
+    "d5_in",
+    "c_196"
+   ],
+   [
+    "d6_in",
+    "b_156"
+   ],
+   [
+    "d7_in",
+    "b_196"
+   ],
+   [
+    "server",
+    "c_14"
+   ],
+   [
+    "server",
+    "c_44"
+   ],
+   [
+    "coffee",
+    "c_84"
+   ],
+   [
+    "coffee",
+    "c_44"
+   ],
+   [
+    "fridge",
+    "c_120"
+   ],
+   [
+    "fridge",
+    "c_156"
+   ],
+   [
+    "cooler",
+    "c_156"
+   ],
+   [
+    "cooler",
+    "c_196"
+   ],
+   [
+    "lead_behind",
+    "c_196"
+   ],
+   [
+    "c_228",
+    "lead_visit0"
+   ],
+   [
+    "lead_visit0",
+    "lead_visit1"
+   ],
+   [
+    "lead_visit1",
+    "c_300"
+   ],
+   [
+    "window",
+    "c_300"
+   ],
+   [
+    "c_300",
+    "hall"
+   ],
+   [
+    "kanban",
+    "hall"
+   ],
+   [
+    "queue3",
+    "queue2"
+   ],
+   [
+    "queue2",
+    "queue1"
+   ],
+   [
+    "queue1",
+    "queue0"
+   ],
+   [
+    "hall",
+    "queue3"
+   ],
+   [
+    "queue0",
+    "julius"
+   ],
+   [
+    "whiteboard",
+    "b_268"
+   ],
+   [
+    "c_300",
+    "lounge_in"
+   ],
+   [
+    "lounge_in",
+    "b_306"
+   ],
+   [
+    "b_306",
+    "lounge_w"
+   ],
+   [
+    "b_306",
+    "sofa_front"
+   ],
+   [
+    "lounge_w",
+    "lounge_s"
+   ],
+   [
+    "lounge_s",
+    "lounge_e"
+   ],
+   [
+    "lounge_e",
+    "bookshelf_spot"
+   ],
+   [
+    "b_120",
+    "entry_in"
+   ],
+   [
+    "entry_in",
+    "entrance"
+   ],
+   [
+    "entry_in",
+    "printer_way"
+   ],
+   [
+    "printer_way",
+    "printer_spot"
+   ],
+   [
+    "printer_way",
+    "b_196"
+   ],
+   [
+    "printer_way",
+    "b_228"
+   ],
+   [
+    "sofa_front",
+    "sofa0"
+   ],
+   [
+    "sofa0",
+    "sofa1"
+   ],
+   [
+    "sofa1",
+    "sofa2"
+   ],
+   [
+    "lounge_w",
+    "armchair_l"
+   ],
+   [
+    "b_306",
+    "armchair_l"
+   ],
+   [
+    "lounge_e",
+    "armchair_r"
+   ],
+   [
+    "lounge_e",
+    "cat_bed"
+   ],
+   [
+    "lounge_s",
+    "cat_bed"
+   ],
+   [
+    "cat_sun",
+    "c_228"
+   ],
+   [
+    "cat_rug",
+    "lounge_s"
+   ]
+  ]
+ },
+ "lights": [
+  {
+   "id": "desk2_lamp",
+   "sprite": "pool_small",
+   "x": 31,
+   "y": 176,
+   "layer": "light",
+   "kind": "lamp",
+   "day": 0.5,
+   "night": 1.0
+  },
+  {
+   "id": "beam0",
+   "sprite": "window_beam",
+   "x": 186,
+   "y": 60,
+   "layer": "light_floor",
+   "kind": "window",
+   "timeOfDay": true,
+   "dust": [
+    194,
+    60,
+    90,
+    100
+   ]
+  },
+  {
+   "id": "beam1",
+   "sprite": "window_beam",
+   "x": 286,
+   "y": 60,
+   "layer": "light_floor",
+   "kind": "window",
+   "timeOfDay": true,
+   "dust": [
+    294,
+    60,
+    90,
+    100
+   ]
+  },
+  {
+   "id": "lounge_lamp",
+   "sprite": "pool_warm",
+   "x": 351,
+   "y": 200,
+   "layer": "light",
+   "kind": "lamp",
+   "day": 0.6,
+   "night": 1.0
+  },
+  {
+   "id": "lounge_lamp_halo",
+   "sprite": "halo_warm",
+   "x": 351,
+   "y": 162,
+   "layer": "light",
+   "kind": "lamp",
+   "day": 0.6,
+   "night": 1.0
+  },
+  {
+   "id": "lead_lamp",
+   "sprite": "pool_small",
+   "x": 217,
+   "y": 88,
+   "layer": "light",
+   "kind": "lamp",
+   "day": 0.5,
+   "night": 1.0
+  },
+  {
+   "id": "kitchen_strip",
+   "sprite": "strip_glow",
+   "x": 56,
+   "y": 28,
+   "layer": "light",
+   "kind": "strip",
+   "day": 0.6,
+   "night": 1.0
+  },
+  {
+   "id": "rack_glow",
+   "sprite": "rack_glow",
+   "x": 1,
+   "y": 20,
+   "layer": "light",
+   "kind": "led",
+   "animation": "pulse",
+   "day": 0.6,
+   "night": 1.0
+  },
+  {
+   "id": "door_glow",
+   "sprite": "door_glow",
+   "x": 432,
+   "y": 11,
+   "layer": "light",
+   "kind": "status",
+   "frame": "free",
+   "day": 0.8,
+   "night": 1.0
+  },
+  {
+   "id": "door_spill",
+   "sprite": "door_spill",
+   "x": 409,
+   "y": 60,
+   "layer": "light_floor",
+   "kind": "door",
+   "when": "julius_door!=closed",
+   "day": 1.0,
+   "night": 1.0
+  },
+  {
+   "id": "vignette",
+   "sprite": "vignette",
+   "x": 0,
+   "y": 0,
+   "layer": "ambient",
+   "kind": "vignette",
+   "day": 0.6,
+   "night": 1.0
+  }
+ ],
+ "hotspots": [
+  {
+   "id": "monitor0",
+   "kind": "monitor",
+   "desk": 0,
+   "rect": [
+    34,
+    149,
+    20,
+    18
+   ]
+  },
+  {
+   "id": "monitor1",
+   "kind": "monitor",
+   "desk": 1,
+   "rect": [
+    74,
+    149,
+    20,
+    18
+   ]
+  },
+  {
+   "id": "monitor2",
+   "kind": "monitor",
+   "desk": 2,
+   "rect": [
+    34,
+    153,
+    20,
+    18
+   ]
+  },
+  {
+   "id": "monitor3",
+   "kind": "monitor",
+   "desk": 3,
+   "rect": [
+    74,
+    153,
+    20,
+    18
+   ]
+  },
+  {
+   "id": "monitor4",
+   "kind": "monitor",
+   "desk": 4,
+   "rect": [
+    146,
+    149,
+    20,
+    18
+   ]
+  },
+  {
+   "id": "monitor5",
+   "kind": "monitor",
+   "desk": 5,
+   "rect": [
+    186,
+    149,
+    20,
+    18
+   ]
+  },
+  {
+   "id": "monitor6",
+   "kind": "monitor",
+   "desk": 6,
+   "rect": [
+    146,
+    153,
+    20,
+    18
+   ]
+  },
+  {
+   "id": "monitor7",
+   "kind": "monitor",
+   "desk": 7,
+   "rect": [
+    186,
+    153,
+    20,
+    18
+   ]
+  },
+  {
+   "id": "lead_monitor",
+   "kind": "monitor",
+   "desk": -1,
+   "rect": [
+    214,
+    79,
+    62,
+    18
+   ]
+  },
+  {
+   "id": "server_rack",
+   "kind": "rack",
+   "rect": [
+    8,
+    24,
+    56,
+    64
+   ]
+  },
+  {
+   "id": "coffee_machine",
+   "kind": "coffee",
+   "rect": [
+    62,
+    32,
+    22,
+    26
+   ]
+  },
+  {
+   "id": "julius_door",
+   "kind": "door",
+   "rect": [
+    390,
+    2,
+    38,
+    60
+   ]
+  },
+  {
+   "id": "cat",
+   "kind": "cat",
+   "rect": [
+    -9,
+    -13,
+    18,
+    14
+   ],
+   "follows": "cat"
+  }
+ ],
+ "characters": {
+  "sprite": "characters",
+  "shadow": "shadow_person",
+  "labelOffset": [
+   0,
+   -34
+  ],
+  "bubbleOffset": [
+   9,
+   -30
+  ],
+  "walkSpeed": 36
+ }
+}

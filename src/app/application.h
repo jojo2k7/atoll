@@ -9,6 +9,7 @@
 
 // Every backend below is exposed as a Q_PROPERTY, and the meta type system
 // needs the complete types, not forward declarations.
+#include "focus/focusservice.h"
 #include "ai/aiservice.h"
 #include "app/shellwindow.h"
 #include "calendar/calendarservice.h"
@@ -17,8 +18,11 @@
 #include "dbus/mprismanager.h"
 #include "dbus/notificationmodel.h"
 #include "dbus/osdmonitor.h"
+#include "input/shortcutservice.h"
 #include "ipc/ipcservice.h"
 #include "media/lyricsservice.h"
+#include "media/audiooutputs.h"
+#include "office/officeservice.h"
 #include "share/shareservice.h"
 #include "system/appactivator.h"
 #include "system/battery.h"
@@ -44,11 +48,13 @@ class Application : public QObject
     QML_NAMED_ELEMENT(App)
     QML_SINGLETON
 
+    Q_PROPERTY(FocusService *focus READ focus CONSTANT)
     Q_PROPERTY(Config *config READ config CONSTANT)
     Q_PROPERTY(ShellWindow *shell READ shell CONSTANT)
     Q_PROPERTY(OsdMonitor *osd READ osd CONSTANT)
     Q_PROPERTY(NotificationModel *notifications READ notifications CONSTANT)
     Q_PROPERTY(MprisManager *media READ media CONSTANT)
+    Q_PROPERTY(AudioOutputs *audio READ audio CONSTANT)
     Q_PROPERTY(Battery *battery READ battery CONSTANT)
     Q_PROPERTY(BluetoothService *bluetooth READ bluetooth CONSTANT)
     Q_PROPERTY(Clock *clock READ clock CONSTANT)
@@ -60,8 +66,11 @@ class Application : public QObject
     Q_PROPERTY(IpcService *ipc READ ipc CONSTANT)
     Q_PROPERTY(CalendarService *calendar READ calendar CONSTANT)
     Q_PROPERTY(PrivacyMonitor *privacy READ privacy CONSTANT)
+    Q_PROPERTY(OfficeService *office READ office CONSTANT)
+    Q_PROPERTY(ShortcutService *shortcuts READ shortcuts CONSTANT)
 
     Q_PROPERTY(QString version READ version CONSTANT)
+    Q_PROPERTY(QString userName READ userName CONSTANT)
     /** ATOLL_DEBUG_SURFACE=1 paints the whole layer surface, to see its bounds. */
     Q_PROPERTY(bool debugSurface READ debugSurface CONSTANT)
     /** ATOLL_DEBUG_STATE=1 logs every state change the island goes through. */
@@ -89,6 +98,7 @@ public:
 
     void start();
 
+    FocusService *focus() const { return m_focus; }
     Config *config() const
     {
         return m_config;
@@ -105,6 +115,7 @@ public:
     {
         return m_notifications;
     }
+    AudioOutputs *audio() const { return m_audio; }
     MprisManager *media() const
     {
         return m_media;
@@ -153,8 +164,18 @@ public:
     {
         return m_privacy;
     }
+    OfficeService *office() const
+    {
+        return m_office;
+    }
+    ShortcutService *shortcuts() const
+    {
+        return m_shortcuts;
+    }
 
     QString version() const;
+    /** The login name, for the office door when `office.doorName` is empty. */
+    QString userName() const;
     QString settingsPage() const;
     bool debugSurface() const;
     bool debugState() const;
@@ -191,6 +212,7 @@ private:
     void onBusMessage(const DBusMessageInfo &message);
     void reportVolume();
 
+    FocusService *m_focus = nullptr;
     Config *m_config = nullptr;
     ShellWindow *m_shell = nullptr;
     DBusMonitor *m_monitor = nullptr;
@@ -198,6 +220,7 @@ private:
     NotificationMonitor *m_notificationMonitor = nullptr;
     NotificationModel *m_notifications = nullptr;
     MprisManager *m_media = nullptr;
+    AudioOutputs *m_audio = nullptr;
     Battery *m_battery = nullptr;
     BluetoothService *m_bluetooth = nullptr;
     Clock *m_clock = nullptr;
@@ -210,6 +233,8 @@ private:
     CalendarService *m_calendar = nullptr;
     AppActivator *m_activator = nullptr;
     PrivacyMonitor *m_privacy = nullptr;
+    OfficeService *m_office = nullptr;
+    ShortcutService *m_shortcuts = nullptr;
 
     bool m_busTapActive = false;
     QString m_busError;

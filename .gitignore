@@ -6,3 +6,5 @@ compile_commands.json
 *.qmlc
 *.jsc
 .qt/
+.claude/
+graphify-out/

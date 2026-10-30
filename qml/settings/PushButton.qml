@@ -9,19 +9,19 @@ Rectangle {
 
     property string text: ""
     property bool destructive: false
+    property bool prominent: false
 
     signal clicked()
 
-    implicitWidth: Math.max(96, caption.implicitWidth + 28)
-    implicitHeight: 32
-    radius: 9
-    color: hover.hovered ? Skin.cardHover : "#22222a"
-    border.width: 1
-    border.color: button.destructive && hover.hovered ? Skin.critical : Skin.line
+    implicitWidth: Math.max(80, caption.implicitWidth + 28)
+    implicitHeight: Skin.controlHeight
+    radius: Skin.radius
+    color: button.prominent ? (hover.hovered ? Qt.lighter(Skin.accent, 1.1) : Skin.accent)
+                            : (hover.hovered ? Skin.controlHover : Skin.control)
 
     Behavior on color {
         ColorAnimation {
-            duration: 140
+            duration: 120
         }
     }
 
@@ -29,8 +29,9 @@ Rectangle {
         id: caption
         anchors.centerIn: parent
         text: button.text
-        color: button.destructive ? Skin.critical : Skin.text
+        color: button.destructive ? Skin.critical : (button.prominent ? Skin.accentText : Skin.text)
         font.pixelSize: 12
+        font.weight: button.prominent ? Font.DemiBold : Font.Normal
     }
 
     HoverHandler {

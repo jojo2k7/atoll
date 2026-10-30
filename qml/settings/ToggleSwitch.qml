@@ -14,16 +14,14 @@ Item {
 
     signal toggled(bool value)
 
-    implicitWidth: 44
-    implicitHeight: 26
+    implicitWidth: 38
+    implicitHeight: 22
     opacity: enabled ? 1 : 0.4
 
     Rectangle {
         anchors.fill: parent
         radius: height / 2
-        color: control.checked ? Skin.accent : "#2a2a33"
-        border.width: 1
-        border.color: control.checked ? Qt.lighter(Skin.accent, 1.1) : Skin.line
+        color: control.checked ? Skin.accent : Skin.control
 
         Behavior on color {
             ColorAnimation {
@@ -33,17 +31,18 @@ Item {
     }
 
     Rectangle {
-        width: parent.height - 8
+        width: parent.height - 4
         height: width
         radius: width / 2
-        y: 4
-        x: control.checked ? parent.width - width - 4 : 4
-        color: control.checked ? "#101014" : "#c9c9d2"
+        y: 2
+        x: control.checked ? parent.width - width - 2 : 2
+        color: "#ffffff"
 
         Behavior on x {
             NumberAnimation {
-                duration: 160
-                easing.type: Easing.OutCubic
+                duration: 180
+                easing.type: Easing.OutBack
+                easing.overshoot: 1.2
             }
         }
     }

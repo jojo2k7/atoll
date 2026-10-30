@@ -224,7 +224,7 @@ SettingsPage {
 
         TextSetting {
             label: qsTr("Time format")
-            description: qsTr("Qt date format, e.g. HH:mm or h:mm ap.")
+            description: qsTr("Qt date format, e.g. HH:mm, h:mm ap, or h:mm for 12-hour without am/pm.")
             key: "clock.timeFormat"
             defaultValue: "HH:mm"
             placeholder: "HH:mm"

@@ -34,6 +34,12 @@ void Clock::scheduleNext()
 QString Clock::time() const
 {
     const QString format = m_config->value(u"clock.timeFormat"_s, u"HH:mm"_s).toString();
+    // A format with h but no ap/AP means 12-hour without the am/pm suffix
+    // (Qt would otherwise treat a bare h as 24-hour).
+    if (format.contains(u'h') && !format.contains(u"ap"_s, Qt::CaseInsensitive)) {
+        const QString withSuffix = QLocale::system().toString(QDateTime::currentDateTime(), format + u" ap"_s);
+        return withSuffix.left(withSuffix.lastIndexOf(u' '));
+    }
     return QLocale::system().toString(QDateTime::currentDateTime(), format);
 }
 

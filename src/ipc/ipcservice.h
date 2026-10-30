@@ -26,8 +26,12 @@ class IpcService : public QObject, protected QDBusContext
     QML_ELEMENT
     QML_UNCREATABLE("Accessed through App.ipc")
 
+    Q_PROPERTY(bool windowActive READ windowActive NOTIFY windowActiveChanged)
+
 public:
     explicit IpcService(QObject *parent = nullptr);
+
+    bool windowActive() const { return m_windowActive; }
 
     /** Claim the bus name. Returns false if another instance already has it. */
     bool registerOnBus();
@@ -41,6 +45,7 @@ public:
     bool registerSettingsOnBus();
 
 public Q_SLOTS:
+    Q_SCRIPTABLE void setWindowActive(bool active);
     Q_SCRIPTABLE void expand();
     Q_SCRIPTABLE void collapse();
     Q_SCRIPTABLE void toggle();
@@ -126,6 +131,7 @@ Q_SIGNALS:
     void screenCaptureRequested(const QString &token, const QString &screen);
     /** Somebody is waiting for the user to answer a question. */
     void userChoiceRequested(const QString &token, const QString &question, const QStringList &options);
+    void windowActiveChanged(bool active);
 
 private:
     /** One caller left hanging on reviewToolCall, and how to reach it. */
@@ -140,7 +146,9 @@ private:
     /** Park a caller and hand back a token to answer it with later. */
     QString park(const QString &kind);
     void sendReply(const QString &token, const QString &value);
+    void ensureKWinScriptLoaded();
 
+    bool m_windowActive = false;
     QHash<QString, OpenReview> m_reviews;
     int m_reviewCounter = 0;
 };

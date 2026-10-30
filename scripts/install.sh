@@ -90,6 +90,7 @@ sudo cmake --install build
 say "Starting the island"
 systemctl --user daemon-reload
 systemctl --user enable --now atoll.service
+systemctl --user restart atoll.service
 note "It starts with your session from now on. 'systemctl --user disable --now atoll.service' undoes that."
 
 # ---- the assistant -------------------------------------------------------

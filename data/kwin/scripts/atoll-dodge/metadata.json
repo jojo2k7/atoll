@@ -1,0 +1,11 @@
+{
+    "KPackageStructure": "KWin/Script",
+    "KPlugin": {
+        "Id": "atoll-dodge",
+        "Name": "Atoll Dodge Helper",
+        "Description": "Notifies Atoll when an app window is active",
+        "Icon": "preferences-system-windows",
+        "Version": "1.0"
+    },
+    "X-Plasma-API": "javascript"
+}

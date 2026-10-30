@@ -316,5 +316,7 @@ install(FILES packaging/atoll.service
         DESTINATION ${CMAKE_INSTALL_LIBDIR}/systemd/user)
 install(PROGRAMS packaging/atollctl
         DESTINATION ${CMAKE_INSTALL_BINDIR})
+install(DIRECTORY data/kwin/scripts/atoll-dodge
+        DESTINATION ${CMAKE_INSTALL_DATADIR}/kwin/scripts)
 
 feature_summary(WHAT ALL FATAL_ON_MISSING_REQUIRED_PACKAGES)

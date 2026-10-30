@@ -49,6 +49,13 @@ SettingsPage {
         }
 
         BoolSetting {
+            label: qsTr("Weather")
+            description: qsTr("Current temperature and weather icon next to date/time.")
+            key: "idle.showWeather"
+            defaultValue: true
+        }
+
+        BoolSetting {
             label: qsTr("Cover of what is playing")
             description: qsTr("While music plays. \"Show a cover on the resting island\" under Media also has to be on.")
             key: "idle.showMediaBadge"

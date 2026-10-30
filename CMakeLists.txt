@@ -236,6 +236,7 @@ qt_add_qml_module(atoll
         qml/components/Ripple.qml
         qml/components/BloubBot.qml
         qml/components/EdgeGlow.qml
+        qml/components/WeatherWidget.qml
         qml/settings/SettingsWindow.qml
         qml/settings/Skin.qml
         qml/settings/SettingsPage.qml

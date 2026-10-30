@@ -19,16 +19,27 @@ Clock::Clock(Config *config, QObject *parent)
         Q_EMIT tick();
         scheduleNext();
     });
-    connect(m_config, &Config::changed, this, &Clock::tick);
+    connect(m_config, &Config::changed, this, [this] {
+        Q_EMIT tick();
+        scheduleNext();
+    });
     scheduleNext();
 }
 
 void Clock::scheduleNext()
 {
+    const QString format = m_config->value(u"clock.timeFormat"_s, u"HH:mm"_s).toString();
+    const bool hasSeconds = format.contains(u's', Qt::CaseInsensitive);
     const QTime current = QTime::currentTime();
-    // Land just after the minute rolls over, never just before it.
-    const int msUntilNextMinute = (60 - current.second()) * 1000 - current.msec() + 20;
-    m_timer.start(qMax(200, msUntilNextMinute));
+
+    if (hasSeconds) {
+        const int msUntilNextSecond = 1000 - current.msec() + 10;
+        m_timer.start(qMax(50, msUntilNextSecond));
+    } else {
+        // Land just after the minute rolls over, never just before it.
+        const int msUntilNextMinute = (60 - current.second()) * 1000 - current.msec() + 20;
+        m_timer.start(qMax(200, msUntilNextMinute));
+    }
 }
 
 QString Clock::time() const

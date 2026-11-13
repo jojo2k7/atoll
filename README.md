@@ -76,7 +76,8 @@ shuffle, previous, play/pause, next and repeat, in that order, with the classic
 three shown when you have never said otherwise (`media.transportButtons`).
 
 It also carries the audio output you are listening on, the Bluetooth devices
-you use, and a **Focus** tile that starts a session with one click.
+and Wi-Fi networks you use, and a **Focus** tile that starts a session with one
+click.
 
 <br>
 
@@ -464,6 +465,31 @@ Choose the system audio output directly in the island or hover player, including
 connecting paired Bluetooth headphones and releasing them for another device.
 Output names are configurable per computer. See [audio outputs](docs/audio-outputs.md)
 for dependencies, command-line controls, and the limits of AirPods device switching.
+
+## Wi-Fi
+
+The dashboard's toggle row carries the radio, and **Settings → Content** adds a
+collapsible panel of nearby networks (`wifi.showInExpanded`). One row per SSID:
+a dual-band router and a mesh show up once, the network in use first, the rest
+by signal strength, and the list stops at `wifi.maxRows` (12) in dense areas.
+
+Click a network to join it or a connected one to leave it. Joining goes through
+NetworkManager on the system bus, so a saved profile reconnects without a
+prompt, and a network Atoll has never seen puts up **Plasma's own** password
+dialog - the key is stored by NetworkManager, exactly as for any other Wi-Fi
+menu, and never passes through Atoll. Enterprise (802.1X) and WEP networks are
+listed as such and hand off to Plasma's settings page rather than being
+attempted with the wrong key management.
+
+One row per network by default: a router that broadcasts the same network on
+2.4, 5 and 6 GHz appears once, labelled with the bands its radios actually
+report. Turn **Merge bands of one network** off in **Settings → Content** to
+list every band as its own row (`wifi.mergeBands`); the change applies to the
+open panel immediately.
+
+Nothing is scanned while the panel is closed. The periodic poll only re-reads
+the properties NetworkManager already holds, and a scan goes out when the panel
+appears; turning `modules.wifi` off stops the service entirely.
 
 ## On the lock screen
 

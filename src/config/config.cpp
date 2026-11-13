@@ -101,6 +101,7 @@ QVariantMap Config::defaults()
     "media": true,
     "battery": true,
     "bluetooth": true,
+    "wifi": true,
     "visualizer": true,
     "clock": true,
     "lyrics": true,
@@ -159,6 +160,11 @@ QVariantMap Config::defaults()
   },
   "bluetooth": {
     "showInExpanded": false
+  },
+  "wifi": {
+    "showInExpanded": false,
+    "maxRows": 12,
+    "mergeBands": true
   },
   "ai": {
     "enabled": true,

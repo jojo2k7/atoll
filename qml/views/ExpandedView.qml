@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 import QtQuick
 import QtQuick.Window
+import QtQuick.Controls.Basic
 import Atoll
 
 /**
@@ -32,8 +33,12 @@ Item {
     signal focusRequested()
 
     // The view is built fresh each time the island opens, which makes it the
-    // natural moment to catch up on whatever BlueZ has been doing.
-    Component.onCompleted: App.bluetooth.refresh()
+    // natural moment to catch up on whatever BlueZ and NetworkManager have
+    // been doing.
+    Component.onCompleted: {
+        App.bluetooth.refresh()
+        App.wifi.refresh()
+    }
 
     implicitWidth: Cfg.expandedWidth
     /**
@@ -603,6 +608,16 @@ Item {
                 }
 
                 QuickToggle {
+                    visible: (Cfg.modules.wifi ?? true) && App.wifi.present
+                    icon: [App.wifi.powered ? "network-wireless-connected-100" : "network-wireless-off",
+                           "network-wireless"]
+                    label: qsTr("Wi-Fi")
+                    checked: App.wifi.powered
+                    opacity: App.wifi.powered || App.wifi.connected ? 1 : 0.55
+                    onToggled: App.wifi.setPowered(!App.wifi.powered)
+                }
+
+                QuickToggle {
                     visible: Cfg.modules.lyrics ?? true
                     icon: ["view-media-lyrics", "view-media-track"]
                     label: qsTr("Lyrics")
@@ -627,6 +642,9 @@ Item {
                 id: bluetoothCard
 
                 property bool open: false
+                // How many rows the panel shows before it scrolls: three keeps
+                // the dashboard within a screen even with both panels open.
+                readonly property int maxVisibleRows: 3
 
                 readonly property bool available: (Cfg.modules.bluetooth ?? true) && App.bluetooth.present
                                                   && Cfg.get("bluetooth.showInExpanded", false)
@@ -716,11 +734,42 @@ Item {
                             anchors.fill: parent
                             hoverEnabled: true
                             cursorShape: Qt.PointingHandCursor
-                            onClicked: bluetoothCard.open = !bluetoothCard.open
+                            onClicked: {
+                                bluetoothCard.open = !bluetoothCard.open
+                                // One at a time: both panels open together is
+                                // what pushed the dashboard past the screen.
+                                if (bluetoothCard.open) {
+                                    wifiCard.open = false
+                                }
+                            }
                         }
                     }
 
-                    Repeater {
+                    // Three rows at a time however many devices there are;
+                    // the rest are a scroll away rather than another 200px of
+                    // dashboard.
+                    ListView {
+                        id: bluetoothList
+                        width: parent.width
+                        height: Math.min(count, bluetoothCard.maxVisibleRows) * 28
+                                + Math.max(0, Math.min(count, bluetoothCard.maxVisibleRows) - 1) * spacing
+                        spacing: 4
+                        clip: true
+                        boundsBehavior: Flickable.StopAtBounds
+                        interactive: contentHeight > height
+                        // Present only while there is more than fits: three
+                        // rows or fewer need no affordance at all.
+                        ScrollBar.vertical: ScrollBar {
+                            policy: bluetoothList.contentHeight > bluetoothList.height
+                                    ? ScrollBar.AlwaysOn : ScrollBar.AlwaysOff
+                            width: 6
+                            contentItem: Rectangle {
+                                implicitWidth: 3
+                                radius: 2
+                                color: Theme.tint(0.5)
+                            }
+                            background: Item {}
+                        }
                         model: bluetoothCard.open ? App.bluetooth.devices : []
 
                         delegate: Item {
@@ -810,6 +859,297 @@ Item {
                         color: Theme.muted
                         font.family: Theme.fontFamily
                         font.pixelSize: Theme.size(10)
+                    }
+                }
+            }
+
+            // ---- wifi ----------------------------------------------------------
+            // Opt-in from the settings, and folded even then, exactly like the
+            // bluetooth panel above. Opening it is what asks NetworkManager
+            // for a scan: the list is only read, never scanned for, while the
+            // panel stays closed.
+            Rectangle {
+                id: wifiCard
+
+                property bool open: false
+                readonly property int maxVisibleRows: 3
+
+                readonly property bool available: (Cfg.modules.wifi ?? true) && App.wifi.present
+                                                  && Cfg.get("wifi.showInExpanded", false)
+                                                  && (App.wifi.powered || App.wifi.connected)
+
+                /** Breeze's own signal ladder, in whichever state the row is in. */
+                function iconFor(entry) {
+                    const strength = entry.strength ?? 0
+                    const level = strength >= 80 ? "80" : strength >= 60 ? "60"
+                                : strength >= 40 ? "40" : strength >= 20 ? "20" : ""
+                    if (entry.connected) {
+                        return level === "" ? "network-wireless-connected-00"
+                                            : "network-wireless-connected-" + level
+                    }
+                    return level === "" ? "network-wireless-0"
+                                        : "network-wireless-" + level + (entry.secure ? "-locked" : "")
+                }
+
+                visible: !view.showingCalendar && available
+                width: parent.width
+                height: visible ? wifiBody.implicitHeight + 20 : 0
+                radius: 16
+                color: Theme.tint(0.06)
+
+                // The panel appearing is the first honest reason to take the
+                // card off-channel; clicking the header asks again.
+                onVisibleChanged: if (visible) App.wifi.scan()
+                onOpenChanged: if (open) App.wifi.scan()
+
+                Column {
+                    id: wifiBody
+                    anchors.fill: parent
+                    anchors.margins: 10
+                    spacing: 4
+
+                    Item {
+                        id: wifiHeader
+                        width: parent.width
+                        height: 26
+
+                        Rectangle {
+                            anchors.fill: parent
+                            radius: 8
+                            color: Theme.tint(wifiHeadArea.containsMouse ? 0.06 : 0.0)
+
+                            Behavior on color {
+                                ColorAnimation { duration: Theme.fast }
+                            }
+                        }
+
+                        Row {
+                            anchors.left: parent.left
+                            anchors.leftMargin: 2
+                            anchors.verticalCenter: parent.verticalCenter
+                            spacing: 7
+
+                            IconImage {
+                                anchors.verticalCenter: parent.verticalCenter
+                                width: 15
+                                height: 15
+                                names: [App.wifi.connected ? "network-wireless-connected-100"
+                                       : App.wifi.powered ? "network-wireless" : "network-wireless-off",
+                                        "network-wireless"]
+                            }
+
+                            Text {
+                                anchors.verticalCenter: parent.verticalCenter
+                                text: qsTr("Wi-Fi")
+                                color: Theme.foreground
+                                font.family: Theme.fontFamily
+                                font.pixelSize: Theme.size(11)
+                                font.weight: Font.DemiBold
+                            }
+                        }
+
+                        Row {
+                            anchors.right: parent.right
+                            anchors.rightMargin: 2
+                            anchors.verticalCenter: parent.verticalCenter
+                            spacing: 6
+
+                            Text {
+                                anchors.verticalCenter: parent.verticalCenter
+                                text: !App.wifi.powered
+                                      ? qsTr("Off")
+                                      : (App.wifi.connected ? App.wifi.activeSsid
+                                                            : qsTr("%1 networks").arg(App.wifi.networks.length))
+                                color: App.wifi.connected ? Theme.positive : Theme.muted
+                                font.family: Theme.fontFamily
+                                font.pixelSize: Theme.size(9)
+                                elide: Text.ElideRight
+                                maximumLineCount: 1
+                            }
+
+                            IconImage {
+                                anchors.verticalCenter: parent.verticalCenter
+                                width: 12
+                                height: 12
+                                names: wifiCard.open ? ["arrow-up", "go-up"]
+                                                     : ["arrow-down", "go-down"]
+                            }
+                        }
+
+                        // A MouseArea rather than a TapHandler: it has to
+                        // take the click, or the island's own tap handler
+                        // sees it too and folds the whole dashboard away.
+                        MouseArea {
+                            id: wifiHeadArea
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: {
+                                wifiCard.open = !wifiCard.open
+                                if (wifiCard.open) {
+                                    bluetoothCard.open = false
+                                }
+                            }
+                        }
+                    }
+
+                    ListView {
+                        id: wifiList
+                        width: parent.width
+                        height: Math.min(count, wifiCard.maxVisibleRows) * 28
+                                + Math.max(0, Math.min(count, wifiCard.maxVisibleRows) - 1) * spacing
+                        spacing: 4
+                        clip: true
+                        boundsBehavior: Flickable.StopAtBounds
+                        interactive: contentHeight > height
+                        // Present only while there is more than fits: three
+                        // rows or fewer need no affordance at all.
+                        ScrollBar.vertical: ScrollBar {
+                            policy: wifiList.contentHeight > wifiList.height
+                                    ? ScrollBar.AlwaysOn : ScrollBar.AlwaysOff
+                            width: 6
+                            contentItem: Rectangle {
+                                implicitWidth: 3
+                                radius: 2
+                                color: Theme.tint(0.5)
+                            }
+                            background: Item {}
+                        }
+                        model: wifiCard.open ? App.wifi.networks : []
+
+                        delegate: Item {
+                            id: networkRow
+                            required property var modelData
+
+                            readonly property bool connected: modelData.connected ?? false
+                            readonly property bool busy: modelData.busy ?? false
+                            readonly property bool supported: modelData.supported ?? true
+
+                            width: parent.width
+                            height: 28
+
+                            Rectangle {
+                                anchors.fill: parent
+                                radius: 8
+                                color: Theme.tint(rowArea.containsMouse ? 0.07 : 0.03)
+                            }
+
+                            IconImage {
+                                id: networkIcon
+                                anchors.left: parent.left
+                                anchors.leftMargin: 6
+                                anchors.verticalCenter: parent.verticalCenter
+                                width: 15
+                                height: 15
+                                names: [wifiCard.iconFor(networkRow.modelData), "network-wireless"]
+                                opacity: networkRow.supported ? 1 : 0.45
+                            }
+
+                            Row {
+                                id: networkTitle
+                                anchors.left: networkIcon.right
+                                anchors.leftMargin: 8
+                                anchors.right: networkStatus.left
+                                anchors.rightMargin: 8
+                                anchors.verticalCenter: parent.verticalCenter
+                                spacing: 6
+
+                                Text {
+                                    id: networkName
+                                    // The badge takes its room out of the name,
+                                    // so a long SSID elides instead of running
+                                    // under the band chip.
+                                    width: Math.max(0, networkTitle.width
+                                                    - (bandChip.visible ? bandChip.implicitWidth + 6 : 0))
+                                    text: networkRow.modelData.label ?? networkRow.modelData.ssid
+                                    color: Theme.foreground
+                                    font.family: Theme.fontFamily
+                                    font.pixelSize: Theme.size(10)
+                                    font.weight: Font.Medium
+                                    elide: Text.ElideRight
+                                    maximumLineCount: 1
+                                    opacity: networkRow.supported ? 1 : 0.55
+                                }
+
+                                // One row, both bands: a router that broadcasts
+                                // the same network on 2.4 and 5 GHz says so
+                                // here rather than appearing twice.
+                                Text {
+                                    id: bandChip
+                                    readonly property var bands: networkRow.modelData.bands ?? []
+                                    visible: bands.length > 0
+                                    text: bands.join("/")
+                                    color: Theme.muted
+                                    font.family: Theme.fontFamily
+                                    font.pixelSize: Theme.size(8)
+                                    anchors.verticalCenter: parent.verticalCenter
+                                }
+                            }
+
+                            Text {
+                                id: networkStatus
+                                anchors.right: parent.right
+                                anchors.rightMargin: 6
+                                anchors.verticalCenter: parent.verticalCenter
+                                text: {
+                                    if (networkRow.busy) {
+                                        if (!networkRow.modelData.busyConnect) {
+                                            return qsTr("Disconnecting…")
+                                        }
+                                        // NetworkManager is waiting on the
+                                        // desktop's password dialog; saying so
+                                        // beats an indefinite "Connecting…".
+                                        return App.wifi.waitingForSecret ? qsTr("Password…")
+                                                                         : qsTr("Connecting…")
+                                    }
+                                    if (networkRow.connected) return qsTr("Connected")
+                                    // These need more than an SSID and a key,
+                                    // so they are named rather than attempted.
+                                    if (networkRow.modelData.kind === "enterprise") return qsTr("Enterprise")
+                                    if (networkRow.modelData.kind === "wep") return qsTr("WEP")
+                                    if (!networkRow.modelData.secure) return qsTr("Open")
+                                    return qsTr("Secured")
+                                }
+                                color: networkRow.busy ? Theme.accent
+                                                       : (networkRow.connected ? Theme.positive : Theme.muted)
+                                font.family: Theme.fontFamily
+                                font.pixelSize: Theme.size(9)
+                            }
+
+                            MouseArea {
+                                id: rowArea
+                                anchors.fill: parent
+                                hoverEnabled: true
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: {
+                                    // Unsupported networks still take the
+                                    // click - it opens Plasma's own page,
+                                    // where 802.1X and WEP can be set up.
+                                    App.wifi.connectNetwork(networkRow.modelData.path)
+                                }
+                            }
+                        }
+                    }
+
+                    Text {
+                        leftPadding: 6
+                        visible: wifiCard.open && App.wifi.networks.length === 0
+                        text: App.wifi.powered ? qsTr("No networks in range")
+                                               : qsTr("Wi-Fi is off")
+                        color: Theme.muted
+                        font.family: Theme.fontFamily
+                        font.pixelSize: Theme.size(10)
+                    }
+
+                    Text {
+                        leftPadding: 6
+                        visible: wifiCard.open && App.wifi.lastError !== ""
+                        text: App.wifi.lastError
+                        color: Theme.critical
+                        font.family: Theme.fontFamily
+                        font.pixelSize: Theme.size(9)
+                        wrapMode: Text.WordWrap
+                        width: parent.width
                     }
                 }
             }

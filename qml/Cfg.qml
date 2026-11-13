@@ -30,6 +30,7 @@ QtObject {
     readonly property var controls: data.controls ?? ({})
     readonly property var ai: data.ai ?? ({})
     readonly property var clock: data.clock ?? ({})
+    readonly property var wifi: data.wifi ?? ({})
 
     readonly property bool fitCollapsedContent: island.fitCollapsedContent ?? true
     readonly property int collapsedPadding: Math.max(4, island.collapsedPadding ?? 12)

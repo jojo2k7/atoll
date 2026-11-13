@@ -114,6 +114,7 @@ qt_add_executable(atoll
     src/system/appactivator.cpp       src/system/appactivator.h
     src/system/battery.cpp         src/system/battery.h
     src/system/bluetooth.cpp       src/system/bluetooth.h
+    src/system/wifi.cpp            src/system/wifi.h
     src/system/clock.cpp           src/system/clock.h
     src/system/lockmonitor.cpp     src/system/lockmonitor.h
     src/system/privacymonitor.cpp  src/system/privacymonitor.h
@@ -533,4 +534,11 @@ if(BUILD_TESTING)
     target_include_directories(atoll-config-test PRIVATE src)
     target_link_libraries(atoll-config-test PRIVATE Qt6::Core Qt6::Qml Qt6::Test)
     add_test(NAME config-migration COMMAND atoll-config-test)
+
+    # The Wi-Fi panel's classification and de-duplication are pure functions,
+    # so they are tested without a radio or a bus.
+    qt_add_executable(atoll-wifi-test tests/wifitest.cpp src/system/wifimodel.h)
+    target_include_directories(atoll-wifi-test PRIVATE src)
+    target_link_libraries(atoll-wifi-test PRIVATE Qt6::Core Qt6::Test)
+    add_test(NAME wifi-model COMMAND atoll-wifi-test)
 endif()

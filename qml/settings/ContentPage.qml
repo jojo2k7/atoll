@@ -152,6 +152,12 @@ SettingsPage {
             defaultValue: true
         }
         BoolSetting {
+            label: qsTr("Wi-Fi")
+            description: qsTr("Radio power and joining networks, managed from the dashboard over NetworkManager.")
+            key: "modules.wifi"
+            defaultValue: true
+        }
+        BoolSetting {
             label: qsTr("Privacy indicators")
             description: qsTr("Watches PipeWire for camera, microphone and screen capture. Without it the dots never light.")
             key: "modules.privacy"
@@ -164,6 +170,24 @@ SettingsPage {
             key: "bluetooth.showInExpanded"
             defaultValue: false
             enabled: Cfg.get("modules.bluetooth", true)
+            opacity: enabled ? 1 : 0.45
+        }
+
+        BoolSetting {
+            label: qsTr("Wi-Fi network panel")
+            description: qsTr("Adds a collapsible list of nearby networks to the dashboard. Opening it is what asks for a fresh scan.")
+            key: "wifi.showInExpanded"
+            defaultValue: false
+            enabled: Cfg.get("modules.wifi", true)
+            opacity: enabled ? 1 : 0.45
+        }
+
+        BoolSetting {
+            label: qsTr("Merge bands of one network")
+            description: qsTr("Shows one row per network, labelled with the bands its radios report (2.4G/5G/6G). Turn off to list each band separately.")
+            key: "wifi.mergeBands"
+            defaultValue: true
+            enabled: Cfg.get("modules.wifi", true) && Cfg.get("wifi.showInExpanded", false)
             opacity: enabled ? 1 : 0.45
         }
 

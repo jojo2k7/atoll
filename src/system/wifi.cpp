@@ -55,6 +55,10 @@ constexpr qint64 MinScanIntervalMs = 10'000;
 // runs on its own, so cancelling a password dialog does not leave a spinner
 // behind until the next poll comes round.
 constexpr int JoinPatienceMs = 30'000;
+// How long a burst of PropertiesChanged signals is gathered into one re-read.
+constexpr int DebounceMs = 150;
+// How long a scan is given before the list is read back.
+constexpr int ScanSettleMs = 900;
 
 QString variantPath(const QVariant &value)
 {
@@ -73,15 +77,17 @@ QString ssidString(const QVariant &value)
  * Ask one object for every property of one interface. The one call covers
  * what several per-property reads would, and the reply is a plain map.
  */
-void fetchProps(const QString &path, const QString &interface,
+void fetchProps(QObject *context, const QString &path, const QString &interface,
                 std::function<void(bool ok, const QVariantMap &props)> handler)
 {
     auto message = QDBusMessage::createMethodCall(QString(NMService), path,
                                                   QString(PropertiesInterface), u"GetAll"_s);
     message << interface;
-    auto *watcher = new QDBusPendingCallWatcher(QDBusConnection::systemBus().asyncCall(message));
-    QObject::connect(watcher, &QDBusPendingCallWatcher::finished, watcher,
-                     [handler, watcher, path, interface](QDBusPendingCallWatcher *self) {
+    // Owned by, and delivered to, the context: a reply that lands after the
+    // service is gone is dropped instead of calling into a deleted object.
+    auto *watcher = new QDBusPendingCallWatcher(QDBusConnection::systemBus().asyncCall(message), context);
+    QObject::connect(watcher, &QDBusPendingCallWatcher::finished, context,
+                     [handler, path, interface](QDBusPendingCallWatcher *self) {
         self->deleteLater();
         const QDBusPendingReply<QVariantMap> reply = *self;
         if (qEnvironmentVariableIntValue("ATOLL_DEBUG_STATE") > 0 && reply.isError()) {
@@ -139,7 +145,7 @@ WifiService::WifiService(Config *config, QObject *parent)
     qDBusRegisterMetaType<SettingsMap>();
 
     m_debounce.setSingleShot(true);
-    m_debounce.setInterval(150);
+    m_debounce.setInterval(DebounceMs);
     connect(&m_debounce, &QTimer::timeout, this, &WifiService::doRefresh);
 
     // Signals carry the news. This poll only re-reads what NetworkManager
@@ -204,6 +210,7 @@ void WifiService::configure()
         m_debounce.stop();
         m_pendingTimer.stop();
         unsubscribe();
+        m_watched = false;
         clearState();
     }
     Q_EMIT changed();
@@ -285,7 +292,7 @@ void WifiService::scan()
         requestScan();
         // A scan answers asynchronously; give it a moment before reading, so
         // the list that comes back is the one the scan just found.
-        m_debounce.start(900);
+        m_debounce.start(ScanSettleMs);
         return;
     }
     doRefresh();
@@ -305,7 +312,7 @@ void WifiService::doRefresh()
 
     // The manager object itself: is the radio on at all?
     ++refresh->pending;
-    fetchProps(QString(NMPath), QString(NMInterface), [this, refresh](bool ok, const QVariantMap &props) {
+    fetchProps(this, QString(NMPath), QString(NMInterface), [this, refresh](bool ok, const QVariantMap &props) {
         refresh->wirelessEnabled = ok && props.value(u"WirelessEnabled"_s).toBool();
         settle(refresh);
     });
@@ -314,7 +321,7 @@ void WifiService::doRefresh()
     ++refresh->pending;
     auto message = QDBusMessage::createMethodCall(QString(NMService), QString(NMPath),
                                                   QString(NMInterface), u"GetDevices"_s);
-    auto *watcher = new QDBusPendingCallWatcher(QDBusConnection::systemBus().asyncCall(message));
+    auto *watcher = new QDBusPendingCallWatcher(QDBusConnection::systemBus().asyncCall(message), this);
     connect(watcher, &QDBusPendingCallWatcher::finished, this, [this, refresh](QDBusPendingCallWatcher *self) {
         self->deleteLater();
         const QDBusPendingReply<QList<QDBusObjectPath>> reply = *self;
@@ -330,7 +337,7 @@ void WifiService::doRefresh()
 void WifiService::inspectDevice(const std::shared_ptr<Refresh> &refresh, const QString &path)
 {
     ++refresh->pending;
-    fetchProps(path, QString(DeviceInterface), [this, refresh, path](bool ok, const QVariantMap &props) {
+    fetchProps(this, path, QString(DeviceInterface), [this, refresh, path](bool ok, const QVariantMap &props) {
         if (ok && refresh->devicePath.isEmpty()
             && props.value(u"DeviceType"_s).toUInt() == DeviceTypeWifi) {
             refresh->devicePath = path;
@@ -349,7 +356,7 @@ void WifiService::inspectDevice(const std::shared_ptr<Refresh> &refresh, const Q
 void WifiService::inspectWireless(const std::shared_ptr<Refresh> &refresh, const QString &path)
 {
     ++refresh->pending;
-    fetchProps(path, QString(WirelessInterface), [this, refresh](bool ok, const QVariantMap &props) {
+    fetchProps(this, path, QString(WirelessInterface), [this, refresh](bool ok, const QVariantMap &props) {
         if (ok) {
             refresh->activeApPath = variantPath(props.value(u"ActiveAccessPoint"_s));
             if (!refresh->activeApPath.isEmpty() && refresh->activeApPath != u"/"_s) {
@@ -365,7 +372,7 @@ void WifiService::inspectWireless(const std::shared_ptr<Refresh> &refresh, const
 void WifiService::inspectActiveConnection(const std::shared_ptr<Refresh> &refresh, const QString &path)
 {
     ++refresh->pending;
-    fetchProps(path, QString(ActiveInterface), [this, refresh](bool ok, const QVariantMap &props) {
+    fetchProps(this, path, QString(ActiveInterface), [this, refresh](bool ok, const QVariantMap &props) {
         if (ok) {
             refresh->activeState = props.value(u"State"_s).toUInt();
         }
@@ -378,7 +385,7 @@ void WifiService::fetchAccessPoints(const std::shared_ptr<Refresh> &refresh, con
     ++refresh->pending;
     auto message = QDBusMessage::createMethodCall(QString(NMService), devicePath,
                                                   QString(WirelessInterface), u"GetAccessPoints"_s);
-    auto *watcher = new QDBusPendingCallWatcher(QDBusConnection::systemBus().asyncCall(message));
+    auto *watcher = new QDBusPendingCallWatcher(QDBusConnection::systemBus().asyncCall(message), this);
     connect(watcher, &QDBusPendingCallWatcher::finished, this, [this, refresh](QDBusPendingCallWatcher *self) {
         self->deleteLater();
         const QDBusPendingReply<QList<QDBusObjectPath>> reply = *self;
@@ -395,7 +402,7 @@ void WifiService::fetchAccessPoints(const std::shared_ptr<Refresh> &refresh, con
 void WifiService::fetchAccessPoint(const std::shared_ptr<Refresh> &refresh, const QString &path)
 {
     ++refresh->pending;
-    fetchProps(path, QString(ApInterface), [this, refresh, path](bool ok, const QVariantMap &props) {
+    fetchProps(this, path, QString(ApInterface), [this, refresh, path](bool ok, const QVariantMap &props) {
         if (ok) {
             const QString ssid = ssidString(props.value(u"Ssid"_s));
             if (!ssid.isEmpty()) {
@@ -458,26 +465,6 @@ void WifiService::assemble(const std::shared_ptr<Refresh> &refresh)
     const bool connected = associated && wifiIsAssociated(refresh->activeState);
     const bool powered = present && refresh->wirelessEnabled;
 
-    // One row per network, one row per join: the collapsing and the ordering
-    // live in wifimodel.h so they can be tested without a radio. The path is
-    // only handed over as "connected" once the connection reached ACTIVATED -
-    // passing the associated one is what made a pending join look finished.
-    const QVariantList aps = collapseNetworks(refresh->aps,
-                                              wifiConnectedPath(refresh->activeState,
-                                                                refresh->activeApPath),
-                                              m_pendingAp, m_maxRows, m_mergeBands);
-
-    // The label of the row in use, which is what the panel shows - the raw
-    // SSID may carry a band suffix the row itself no longer displays.
-    QString activeSsid;
-    for (const QVariant &entry : aps) {
-        const QVariantMap ap = entry.toMap();
-        if (ap.value(u"connected"_s).toBool()) {
-            activeSsid = ap.value(u"label"_s).toString();
-            break;
-        }
-    }
-
     // A connect or disconnect in flight is worth more to the user than a
     // moment of truth, so the attempt waits for the network itself, a
     // refusal, or the patience timer - whichever comes first.
@@ -485,33 +472,49 @@ void WifiService::assemble(const std::shared_ptr<Refresh> &refresh)
         // Any sighting of the row counts: a dual-band join may associate with
         // either band, and roaming between them is not a failure.
         const bool onPending = connected && m_pendingPaths.contains(refresh->activeApPath);
+        // Device and active-connection state only describe this attempt once
+        // the device's ActiveConnection is the one the attempt created. Before
+        // that - and while switching networks - they describe the connection
+        // being left, whose ACTIVATED, DEACTIVATING and DISCONNECTED states say
+        // nothing about whether the new join works.
+        const bool ours = !m_pendingConnPath.isEmpty()
+                          && refresh->activeConnPath == m_pendingConnPath;
 
         // A password dialog is not a stalled join. While the device sits in
         // NEED_AUTH, NetworkManager is waiting on the desktop's secret agent and
         // nothing will answer until somebody types - so the deadline is
         // suspended rather than expiring behind the dialog.
-        if (m_pendingConnect && wifiDeviceProgressed(refresh->deviceState)) {
+        if (m_pendingConnect && ours && wifiDeviceProgressed(refresh->deviceState)) {
             m_attemptProgressed = true;
         }
-        m_waitingForSecret = m_pendingConnect && wifiAwaitingSecret(refresh->deviceState);
+        m_waitingForSecret = m_pendingConnect && ours && wifiAwaitingSecret(refresh->deviceState);
         if (m_waitingForSecret) {
             if (m_pendingTimer.isActive()) {
+                // Keep what was left, so the deadline resumes rather than
+                // starting over once the dialog closes.
+                m_pendingRemainingMs = m_pendingTimer.remainingTime();
                 m_pendingTimer.stop();
                 m_pendingPaused = true;
             }
         } else if (m_pendingPaused) {
             m_pendingPaused = false;
-            m_pendingTimer.start();
+            m_pendingTimer.start(std::max(m_pendingRemainingMs, 1));
         }
 
         bool done = m_pendingConnect ? onPending : !onPending;
-        if (!done && refresh->activeState >= ActiveStateDeactivating) {
+        // A disconnect is over as soon as the connection starts going away; a
+        // join only when the connection it created does.
+        if (!done && refresh->activeState >= ActiveStateDeactivating
+            && (!m_pendingConnect || ours)) {
             done = true;
         }
         // Cancelling the password dialog, or a handshake that simply lost the
         // argument, ends the attempt: without this the row stayed busy - and
         // every other click stayed blocked - until the patience timer ran out.
+        // Once the attempt's own connection has been seen progressing, the
+        // device dropping back without it means the attempt is over.
         if (!done && m_pendingConnect && m_attemptProgressed
+            && refresh->activeConnPath != m_pendingConnPath
             && wifiDeviceGaveUp(refresh->deviceState)) {
             done = true;
         }
@@ -525,6 +528,29 @@ void WifiService::assemble(const std::shared_ptr<Refresh> &refresh)
                 m_lastError.clear();
             }
             clearPending();
+        }
+    }
+
+    // One row per network, one row per join: the collapsing and the ordering
+    // live in wifimodel.h so they can be tested without a radio. The path is
+    // only handed over as "connected" once the connection reached ACTIVATED -
+    // passing the associated one is what made a pending join look finished.
+    // Built after the attempt above has been settled, so a join that just
+    // ended does not leave its row marked busy.
+    const QVariantList aps = collapseNetworks(refresh->aps,
+                                              wifiConnectedPath(refresh->activeState,
+                                                                refresh->activeApPath),
+                                              m_pendingAp, m_maxRows, m_mergeBands,
+                                              m_pendingConnect);
+
+    // The label of the row in use, which is what the panel shows - the raw
+    // SSID may carry a band suffix the row itself no longer displays.
+    QString activeSsid;
+    for (const QVariant &entry : aps) {
+        const QVariantMap ap = entry.toMap();
+        if (ap.value(u"connected"_s).toBool()) {
+            activeSsid = ap.value(u"label"_s).toString();
+            break;
         }
     }
 
@@ -570,6 +596,7 @@ void WifiService::beginPolling()
     if (!m_enabled) {
         return;
     }
+    m_watched = true;
     // Subscribing is also a cost that only makes sense once somebody is
     // looking: unwatched, the island draws nothing Wi-Fi-shaped, and the
     // settings process never asks at all.
@@ -587,12 +614,39 @@ void WifiService::beginPolling()
     }
 }
 
+void WifiService::stopPolling()
+{
+    m_watched = false;
+    // An attempt in flight still needs the bus to learn how it ends; the poll
+    // and the subscription go once it has.
+    if (m_pendingPaths.isEmpty()) {
+        goIdle();
+    }
+}
+
+void WifiService::goIdle()
+{
+    if (m_refreshTimer.isActive() || m_subscribed) {
+        if (qEnvironmentVariableIntValue("ATOLL_DEBUG_STATE") > 0) {
+            qWarning("atoll: wifi idle - poll stopped, bus released");
+        }
+    }
+    m_refreshTimer.stop();
+    unsubscribe();
+}
+
 void WifiService::scheduleRefresh()
 {
     if (!m_enabled) {
         return;
     }
-    m_debounce.start();
+    // Coalesce rather than postpone: restarting on every signal would starve
+    // the re-read in a busy area where access points report strength changes
+    // more often than the debounce interval. A read already scheduled (a scan
+    // settling, say) covers this signal too.
+    if (!m_debounce.isActive()) {
+        m_debounce.start(DebounceMs);
+    }
 }
 
 void WifiService::requestScan()
@@ -943,7 +997,8 @@ void WifiService::setPending(const QStringList &paths, const QString &label, boo
     m_pendingConnPath.clear();
     m_attemptProgressed = false;
     ++m_attemptId;
-    m_pendingTimer.start();
+    m_pendingPaused = false;
+    m_pendingTimer.start(JoinPatienceMs);
 
     for (QVariant &entry : m_networks) {
         QVariantMap ap = entry.toMap();
@@ -1005,6 +1060,10 @@ void WifiService::clearPending()
     m_attemptProgressed = false;
     m_waitingForSecret = false;
     m_pendingPaused = false;
+    if (!m_watched) {
+        // The dashboard closed while this attempt was running.
+        goIdle();
+    }
 
     for (QVariant &entry : m_networks) {
         QVariantMap ap = entry.toMap();

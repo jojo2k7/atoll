@@ -154,6 +154,31 @@ private Q_SLOTS:
         QVERIFY(rows.first().toMap().value(QStringLiteral("busyConnect")).toBool());
     }
 
+    void pendingDisconnectIsNotAJoin()
+    {
+        // A row being left is busy, but it must not read as "Connecting...".
+        const QVariantList aps{ap("home", "/ap/1", 90)};
+        const QVariantList rows =
+            collapseNetworks(aps, QStringLiteral("/ap/1"), QStringLiteral("/ap/1"), 12, true, false);
+        QCOMPARE(rows.size(), 1);
+        QVERIFY(rows.first().toMap().value(QStringLiteral("busy")).toBool());
+        QVERIFY(!rows.first().toMap().value(QStringLiteral("busyConnect")).toBool());
+    }
+
+    void ssidCaseIsNotFolded()
+    {
+        // SSIDs are case-sensitive: 'Office' and 'OFFICE' are two networks.
+        const QVariantList aps{ap("Office", "/ap/1", 60), ap("OFFICE", "/ap/2", 50)};
+        QCOMPARE(collapseNetworks(aps, QString(), QString(), 12).size(), 2);
+    }
+
+    void ipCheckCountsAsProgress()
+    {
+        QVERIFY(wifiDeviceProgressed(80));
+        QVERIFY(!wifiDeviceProgressed(30));
+        QVERIFY(!wifiDeviceProgressed(120));
+    }
+
     void connectedRowSortsFirst()
     {
         const QVariantList aps{ap("weak", "/ap/1", 20), ap("strong", "/ap/2", 95),

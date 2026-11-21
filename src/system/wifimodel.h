@@ -217,8 +217,9 @@ inline bool wifiAwaitingSecret(uint deviceState)
  */
 inline bool wifiDeviceProgressed(uint deviceState)
 {
+    // PREPARE, CONFIG, NEED_AUTH, IP_CONFIG, IP_CHECK, SECONDARIES, ACTIVATED.
     return deviceState == 40 || deviceState == 50 || deviceState == 60 || deviceState == 70
-           || deviceState == 90 || deviceState == 100;
+           || deviceState == 80 || deviceState == 90 || deviceState == 100;
 }
 
 /** The attempt is over: disconnected again, or failed outright. */
@@ -304,11 +305,12 @@ inline WifiBandSplit wifiSplitBand(const QString &ssid)
  *
  * Each surviving entry gains `connected`, `busy` and `busyConnect`, and the
  * list stops at maxRows because a station or an office can offer a hundred
- * networks.
+ * networks. `busyConnect` is only set when the attempt behind pendingPath is a
+ * join (`pendingConnect`); a pending disconnect marks the row busy without it.
  */
 inline QVariantList collapseNetworks(const QVariantList &aps, const QString &activePath,
                                      const QString &pendingPath, int maxRows,
-                                     bool mergeBands = true)
+                                     bool mergeBands = true, bool pendingConnect = true)
 {
     const auto rank = [&activePath, &pendingPath](const QString &path) {
         if (!activePath.isEmpty() && path == activePath) {
@@ -354,6 +356,8 @@ inline QVariantList collapseNetworks(const QVariantList &aps, const QString &act
         // `DnD_5G` land together whether or not both bands are in range - but
         // only when the suffix is telling the truth. It carries the kind as
         // well, so a PSK and an SAE network of the same name never collapse.
+        // SSIDs are case-sensitive - `Home` and `HOME` are two networks with
+        // two profiles - so the name is not folded.
         //
         // With merging off the band is part of the key, so a router sharing one
         // name across two radios shows one row per radio - which is what
@@ -361,7 +365,7 @@ inline QVariantList collapseNetworks(const QVariantList &aps, const QString &act
         // network on the same band (a mesh) still collapse, so the list does
         // not fill with identical rows.
         const QString base = (mergeBands && nameAgrees) ? split.base : ssid;
-        const QString key = base.toLower() + QChar(u'#') + kind
+        const QString key = base + QChar(u'#') + kind
                             + (mergeBands ? QString() : QChar(u'|') + band);
 
         Group &group = groups[key];
@@ -440,7 +444,7 @@ inline QVariantList collapseNetworks(const QVariantList &aps, const QString &act
         row.insert(QStringLiteral("strength"), strongest);
         row.insert(QStringLiteral("connected"), connected);
         row.insert(QStringLiteral("busy"), busy);
-        row.insert(QStringLiteral("busyConnect"), busy);
+        row.insert(QStringLiteral("busyConnect"), busy && pendingConnect);
         out.append(row);
     }
 

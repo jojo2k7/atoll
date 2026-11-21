@@ -39,6 +39,9 @@ Item {
         App.bluetooth.refresh()
         App.wifi.refresh()
     }
+    // The dashboard is what keeps NetworkManager watched; once it folds away
+    // nothing shows Wi-Fi state, so the poll and the bus subscription go too.
+    Component.onDestruction: App.wifi.stopPolling()
 
     implicitWidth: Cfg.expandedWidth
     /**

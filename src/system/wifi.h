@@ -114,6 +114,11 @@ public:
     Q_INVOKABLE void refresh();
     /** Ask for a fresh scan, then re-read. Called when the panel opens. */
     Q_INVOKABLE void scan();
+    /**
+     * Nothing is showing the list any more: stop the poll and release the bus
+     * once any attempt in flight has ended. refresh() or scan() resume both.
+     */
+    Q_INVOKABLE void stopPolling();
     /** Turn the radio on or off. */
     Q_INVOKABLE void setPowered(bool on);
     /** Join the network behind this access point, or leave it if in use. */
@@ -162,6 +167,7 @@ private:
     void assemble(const std::shared_ptr<Refresh> &refresh);
 
     void beginPolling();
+    void goIdle();
     void scheduleRefresh();
     void requestScan();
     void clearState();
@@ -208,6 +214,9 @@ private:
     // The patience timer is paused while the password dialog is open, and
     // resumes where it left off once it closes.
     bool m_pendingPaused = false;
+    int m_pendingRemainingMs = 0;
+    // Something (the dashboard) is showing Wi-Fi state and wants it kept live.
+    bool m_watched = false;
     bool m_present = false;
     bool m_powered = false;
     bool m_connected = false;
